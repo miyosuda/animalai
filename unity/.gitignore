@@ -1,0 +1,15 @@
+CustomAnimalAI-environment.sln
+CustomAnimalAIOlympics-PrivDev-UnitySDK.sln
+Assembly-CSharp.csproj
+Assembly-CSharp-Editor.csproj
+iOSBLAS.csproj
+Library
+Logs
+MacBLAS.csproj
+obj
+omnisharp.json
+Packages
+UIElementsSchema
+.vscode
+Builds
+
