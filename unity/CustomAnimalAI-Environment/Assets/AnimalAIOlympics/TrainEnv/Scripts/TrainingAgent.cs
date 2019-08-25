@@ -62,10 +62,10 @@ public class TrainingAgent : Agent, IPrefab
         AddVectorObs(localVel);
 
         // CHANGED: Custumly added global positaion and rotation
-        Vector3 position = _rigidBody.velocity;
+        Vector3 position = _rigidBody.position;
         AddVectorObs(position);
 
-        Quaternion rotation = _rigidBody.rotation;
+        float rotation = transform.eulerAngles.y;
         AddVectorObs(rotation);
     }
 
