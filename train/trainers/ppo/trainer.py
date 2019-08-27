@@ -11,9 +11,9 @@ import tensorflow as tf
 
 from animalai.envs import AllBrainInfo, BrainInfo
 
+from trainers.trainer import Trainer
 from trainers.buffer import Buffer
 from trainers.ppo.policy import PPOPolicy
-from trainers.trainer import Trainer
 
 logger = logging.getLogger("mlagents.trainers")
 

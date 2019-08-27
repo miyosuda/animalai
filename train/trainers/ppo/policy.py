@@ -1,8 +1,8 @@
 import logging
 import numpy as np
 
-from trainers.ppo.models import PPOModel
 from trainers.policy import Policy
+from trainers.ppo.models import PPOModel
 
 logger = logging.getLogger("mlagents.trainers")
 

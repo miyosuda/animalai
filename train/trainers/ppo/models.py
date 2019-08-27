@@ -2,6 +2,7 @@ import logging
 import numpy as np
 
 import tensorflow as tf
+
 from trainers.models import LearningModel
 
 logger = logging.getLogger("mlagents.envs")
