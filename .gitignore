@@ -2,3 +2,4 @@ __pycache__
 env/*
 train/models
 train/summaries
+train/UnitySDK.log

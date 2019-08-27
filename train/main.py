@@ -30,6 +30,10 @@ trainer_config_path = 'configs/trainer_config.yaml'
 model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
 
+n_arenas         = 8
+#arena_config_path= 'configs/exampleTraining.yaml'
+arena_config_path= 'configs/3-Obstacles.yaml'
+
 
 def load_config(trainer_config_path):
     try:
@@ -61,7 +65,7 @@ def init_environment(env_path,
     docker_training = docker_target_name is not None
 
     return UnityEnvironment(
-        n_arenas=4,             # Change this to train on more arenas
+        n_arenas=n_arenas,  # Change this to train on more arenas
         file_name=env_path,
         worker_id=worker_id,
         seed=seed,
@@ -70,8 +74,7 @@ def init_environment(env_path,
     )
 
 
-arena_config_in = ArenaConfig('configs/exampleTraining.yaml')
-
+arena_config_in = ArenaConfig(arena_config_path)
 trainer_config = load_config(trainer_config_path)
 env = init_environment(env_path,
                        docker_target_name,
