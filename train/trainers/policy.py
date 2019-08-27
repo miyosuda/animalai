@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import numpy as np
 import tensorflow as tf
@@ -20,10 +21,16 @@ class Policy(object):
     Contains a learning model, and the necessary
     functions to interact with it to perform evaluate and updating.
     """
-    possible_output_nodes = ['action', 'value_estimate',
-                             'action_probs', 'recurrent_out', 'memory_size',
-                             'version_number', 'is_continuous_control',
-                             'action_output_shape']
+    possible_output_nodes = [
+        'action',
+        'value_estimate',
+        'action_probs',
+        'recurrent_out',
+        'memory_size',
+        'version_number',
+        'is_continuous_control',
+        'action_output_shape'
+    ]
 
     def __init__(self, seed, brain, trainer_parameters):
         """
@@ -44,10 +51,14 @@ class Policy(object):
         self.model_path = trainer_parameters["model_path"]
         self.keep_checkpoints = trainer_parameters.get("keep_checkpoints", 5)
         self.graph = tf.Graph()
+        
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
+        
         self.sess = tf.Session(config=config, graph=self.graph)
+        
         self.saver = None
+        
         if self.use_recurrent:
             self.m_size = trainer_parameters["memory_size"]
             self.sequence_length = trainer_parameters["sequence_length"]
@@ -160,27 +171,6 @@ class Policy(object):
             self.saver.save(self.sess, last_checkpoint)
             tf.train.write_graph(self.graph, self.model_path,
                                  'raw_graph_def.pb', as_text=False)
-
-    """
-    def export_model(self):
-        #Exports latest saved model to .nn format for Unity embedding.
-
-        with self.graph.as_default():
-            target_nodes = ','.join(self._process_graph())
-            ckpt = tf.train.get_checkpoint_state(self.model_path)
-            freeze_graph.freeze_graph(
-                input_graph=self.model_path + '/raw_graph_def.pb',
-                input_binary=True,
-                input_checkpoint=ckpt.model_checkpoint_path,
-                output_node_names=target_nodes,
-                output_graph=(self.model_path + '/frozen_graph_def.pb'),
-                clear_devices=True, initializer_nodes='', input_saver='',
-                restore_op_name='save/restore_all',
-                filename_tensor_name='save/Const:0')
-
-        tf2bc.convert(self.model_path + '/frozen_graph_def.pb', self.model_path + '.nn')
-        logger.info('Exported ' + self.model_path + '.nn file')
-    """
 
     def _process_graph(self):
         """
