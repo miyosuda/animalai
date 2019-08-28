@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # # Unity ML-Agents Toolkit
 # ## ML-Agent Learning
 """Launches trainers for each External Brains in a Unity Environment."""
@@ -170,6 +171,7 @@ class TrainerController(object):
 
         # Prevent a single session from taking all GPU memory.
         self.initialize_trainers(trainer_config)
+        
         for _, t in self.trainers.items():
             self.logger.info(t)
 

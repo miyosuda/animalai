@@ -18,14 +18,12 @@ base_port        = 5005
 sub_id           = 1
 run_id           = 'run_001'
 save_freq        = 5000
-curriculum_file  = None
 load_model       = False
 train_model      = True
 keep_checkpoints = 5000
 lesson           = 0
 run_seed         = 1
 docker_target_name = None
-no_graphics      = False
 trainer_config_path = 'configs/trainer_config.yaml'
 model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
@@ -52,7 +50,6 @@ def load_config(trainer_config_path):
 
 def init_environment(env_path,
                      docker_target_name,
-                     no_graphics,
                      worker_id,
                      seed):
     if env_path is not None:
@@ -78,7 +75,6 @@ arena_config_in = ArenaConfig(arena_config_path)
 trainer_config = load_config(trainer_config_path)
 env = init_environment(env_path,
                        docker_target_name,
-                       no_graphics,
                        worker_id,
                        run_seed)
 
