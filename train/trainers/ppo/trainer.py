@@ -430,7 +430,9 @@ class PPOTrainer(Trainer):
     def is_ready_update(self):
         """
         Returns whether or not the trainer has enough elements to run update model
-        :return: A boolean corresponding to whether or not update_model() can be run
+        
+        :return: 
+            A boolean corresponding to whether or not update_model() can be run
         """
         size_of_buffer = len(self.training_buffer.update_buffer['actions'])
         return size_of_buffer > max(int(self.trainer_parameters['buffer_size'] / self.policy.sequence_length), 1)
@@ -477,10 +479,15 @@ def discount_rewards(r,
                      value_next=0.0):
     """
     Computes discounted sum of future rewards for use in updating value estimate.
-    :param r: List of rewards.
-    :param gamma: Discount factor.
-    :param value_next: T+1 value estimate for returns calculation.
-    :return: discounted sum of future rewards as list.
+    
+    :param r: 
+        List of rewards.
+    :param gamma: 
+        Discount factor.
+    :param value_next: 
+        T+1 value estimate for returns calculation.
+    :return: 
+        discounted sum of future rewards as list.
     """
     discounted_r = np.zeros_like(r)
     running_add = value_next
@@ -497,12 +504,19 @@ def get_gae(rewards,
             lambd=0.95):
     """
     Computes generalized advantage estimate for use in updating policy.
-    :param rewards: list of rewards for time-steps t to T.
-    :param value_next: Value estimate for time-step T+1.
-    :param value_estimates: list of value estimates for time-steps t to T.
-    :param gamma: Discount factor.
-    :param lambd: GAE weighing factor.
-    :return: list of advantage estimates for time-steps t to T.
+
+    :param rewards: 
+        list of rewards for time-steps t to T.
+    :param value_next: 
+        Value estimate for time-step T+1.
+    :param value_estimates: 
+        list of value estimates for time-steps t to T.
+    :param gamma: 
+        Discount factor.
+    :param lambd: 
+        GAE weighing factor.
+    :return: 
+        list of advantage estimates for time-steps t to T.
     """
     value_estimates = np.asarray(value_estimates.tolist() + [value_next])
     delta_t = rewards + gamma * value_estimates[1:] - value_estimates[:-1]

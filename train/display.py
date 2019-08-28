@@ -27,7 +27,6 @@ class MovieWriter(object):
         frame_size is (w, h)
         """
         self._frame_size = frame_size
-        #fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v')
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         self.vout = cv2.VideoWriter()
         success = self.vout.open(file_name, fourcc, fps, frame_size, True)
@@ -105,19 +104,16 @@ class Display(object):
         text_rect.top = top
         self.surface.blit(text, text_rect)
 
-    def show_policy(self, pi):
+    def show_policy(self, pi, x=10, y=150, label="PI"):
         """
         Show action probability.
         """
-        start_x = 10
-
-        y = 150
-
+        start_x = x
         for i in range(len(pi)):
             width = pi[i] * 100
             pygame.draw.rect(self.surface, WHITE, (start_x, y, width, 10))
             y += 20
-        self.draw_center_text("PI", 50, y)
+        self.draw_center_text(label, x+40, y)
 
     def show_image(self, state):
         """
@@ -175,6 +171,13 @@ class Display(object):
         data = self.surface.get_buffer().raw
         return data
 
+    def softmax(self, a):
+        c = np.max(a)
+        exp_a = np.exp(a - c)
+        sum_exp_a = np.sum(exp_a)
+        y = exp_a / sum_exp_a
+        return y
+
     def process(self):
         if self.obs == None:
             self.obs, self.reward, self.done, self.info = self.env.step([0, 0])
@@ -189,11 +192,15 @@ class Display(object):
         self.episode_reward += self.reward
         self.value_history.add_value(value)
 
+        pi0 = self.softmax(log_probs[0,0:3]) # 前後方向のAction
+        pi1 = self.softmax(log_probs[0,3:])  # 左右方向のAction
+
         if self.done:
             self.obs = None
         
         self.show_image(state)
-        #self.show_policy(pi_values)
+        self.show_policy(pi0, 10, 150, "PI (F<->B)")
+        self.show_policy(pi1, 10, 250, "PI (R<->L)")
         self.show_value()
         self.show_reward()
 
@@ -264,7 +271,7 @@ def main():
     model_path          = './models/run_food1/Learner'
     #model_path         = './models/run_001/Learner'
     
-    recording = False
+    recording = True
     display_size = (440, 400)
 
     agent = init_agent(trainer_config_path, model_path)

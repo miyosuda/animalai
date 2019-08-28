@@ -32,16 +32,26 @@ class TrainerController(object):
                  training_seed: int,
                  config=None):
         """
-        :param model_path: Path to save the model.
-        :param summaries_dir: Folder to save training summaries.
-        :param run_id: The sub-directory name for model and summary statistics
-        :param save_freq: Frequency at which to save model
-        :param load: Whether to load the model or randomly initialize.
-        :param train: Whether to train model, or only run inference.
-        :param keep_checkpoints: How many model checkpoints to keep.
-        :param lesson: Start learning from this lesson.
-        :param external_brains: dictionary of external brain names to BrainInfo objects.
-        :param training_seed: Seed to use for Numpy and Tensorflow random number generation.
+        :param model_path: 
+            Path to save the model.
+        :param summaries_dir: 
+            Folder to save training summaries.
+        :param run_id: 
+            The sub-directory name for model and summary statistics
+        :param save_freq: 
+            Frequency at which to save model
+        :param load: 
+            Whether to load the model or randomly initialize.
+        :param train: 
+            Whether to train model, or only run inference.
+        :param keep_checkpoints: 
+            How many model checkpoints to keep.
+        :param lesson: 
+            Start learning from this lesson.
+        :param external_brains: 
+            dictionary of external brain names to BrainInfo objects.
+        :param training_seed: 
+            Seed to use for Numpy and Tensorflow random number generation.
         """
 
         self.model_path = model_path
@@ -69,8 +79,11 @@ class TrainerController(object):
     def _save_model(self, steps=0):
         """
         Saves current model to checkpoint folder.
-        :param steps: Current number of steps in training process.
-        :param saver: Tensorflow saver for session.
+
+        :param steps: 
+            Current number of steps in training process.
+        :param saver: 
+            Tensorflow saver for session.
         """
         for brain_name in self.trainers.keys():
             self.trainers[brain_name].save_model()
@@ -103,7 +116,9 @@ class TrainerController(object):
     def initialize_trainers(self, trainer_config):
         """
         Initialization of the trainers
-        :param trainer_config: The configurations of the trainers
+
+        :param trainer_config: 
+            The configurations of the trainers
         """
         trainer_parameters_dict = {}
 
