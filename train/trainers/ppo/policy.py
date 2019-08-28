@@ -62,8 +62,6 @@ class PPOPolicy(Policy):
             'learning_rate' : self.model.learning_rate
         }
         
-        if self.use_continuous_act:
-            self.inference_dict['pre_action'] = self.model.output_pre
         if self.use_recurrent:
             self.inference_dict['memory_out'] = self.model.memory_out
         if is_training and self.use_vec_obs and trainer_params['normalize']:
@@ -95,24 +93,16 @@ class PPOPolicy(Policy):
         epsilon = None
         
         if self.use_recurrent:
-            if not self.use_continuous_act:
-                feed_dict[self.model.prev_action] = brain_info.previous_vector_actions.reshape(
-                    [-1, len(self.model.act_size)])
+            feed_dict[self.model.prev_action] = brain_info.previous_vector_actions.reshape(
+                [-1, len(self.model.act_size)])
             if brain_info.memories.shape[1] == 0:
                 brain_info.memories = self.make_empty_memory(len(brain_info.agents))
             feed_dict[self.model.memory_in] = brain_info.memories
-            
-        if self.use_continuous_act:
-            epsilon = np.random.normal(size=(len(brain_info.vector_observations),
-                                             self.model.act_size[0]))
-            feed_dict[self.model.epsilon] = epsilon
             
         feed_dict = self._fill_eval_dict(feed_dict, brain_info)
         
         run_out = self._execute_model(feed_dict, self.inference_dict)
         
-        if self.use_continuous_act:
-            run_out['random_normal_epsilon'] = epsilon
         return run_out
 
     def update(self, mini_batch, num_sequences):
@@ -137,19 +127,13 @@ class PPOPolicy(Policy):
                 [-1, sum(self.model.act_size)])
         }
         
-        if self.use_continuous_act:
-            feed_dict[self.model.output_pre] = mini_batch['actions_pre'].reshape(
-                [-1, self.model.act_size[0]])
-            feed_dict[self.model.epsilon] = mini_batch['random_normal_epsilon'].reshape(
-                [-1, self.model.act_size[0]])
-        else:
-            feed_dict[self.model.action_holder] = mini_batch['actions'].reshape(
+        feed_dict[self.model.action_holder] = mini_batch['actions'].reshape(
+            [-1, len(self.model.act_size)])
+        if self.use_recurrent:
+            feed_dict[self.model.prev_action] = mini_batch['prev_action'].reshape(
                 [-1, len(self.model.act_size)])
-            if self.use_recurrent:
-                feed_dict[self.model.prev_action] = mini_batch['prev_action'].reshape(
-                    [-1, len(self.model.act_size)])
-            feed_dict[self.model.action_masks] = mini_batch['action_mask'].reshape(
-                [-1, sum(self.brain.vector_action_space_size)])
+        feed_dict[self.model.action_masks] = mini_batch['action_mask'].reshape(
+            [-1, sum(self.brain.vector_action_space_size)])
             
         if self.use_vec_obs:
             feed_dict[self.model.vector_in] = mini_batch['vector_obs'].reshape(
@@ -204,10 +188,7 @@ class PPOPolicy(Policy):
                 self.model.sequence_length : 1
             }
             
-            if self.use_continuous_act:
-                feed_dict[self.model.selected_actions] = next_info.previous_vector_actions
-            else:
-                feed_dict[self.model.action_holder] = next_info.previous_vector_actions
+            feed_dict[self.model.action_holder] = next_info.previous_vector_actions
                 
             for i in range(self.model.vis_obs_size):
                 feed_dict[self.model.visual_in[i]]      = curr_info.visual_observations[i]
@@ -255,7 +236,7 @@ class PPOPolicy(Policy):
                 brain_info.memories = self.make_empty_memory(len(brain_info.agents))
             feed_dict[self.model.memory_in] = [brain_info.memories[idx]]
             
-        if not self.use_continuous_act and self.use_recurrent:
+        if self.use_recurrent:
             feed_dict[self.model.prev_action] = brain_info.previous_vector_actions[idx].reshape(
                 [-1, len(self.model.act_size)])
             

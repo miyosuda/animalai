@@ -62,11 +62,7 @@ class PPOModel(LearningModel):
             
         self.last_reward, self.new_reward, self.update_reward = self.create_reward_encoder()
         
-        if brain.vector_action_space_type == "continuous":
-            self.create_cc_actor_critic(h_size, num_layers)
-            self.entropy = tf.ones_like(tf.reshape(self.value, [-1])) * self.entropy
-        else:
-            self.create_dc_actor_critic(h_size, num_layers)
+        self.create_dc_actor_critic(h_size, num_layers)
             
         if self.use_curiosity:
             self.curiosity_enc_size = curiosity_enc_size
@@ -178,21 +174,13 @@ class PPOModel(LearningModel):
         combined_input = tf.concat([encoded_state, encoded_next_state], axis=1)
         hidden = tf.layers.dense(combined_input, 256, activation=self.swish)
         
-        if self.brain.vector_action_space_type == "continuous":
-            pred_action = tf.layers.dense(hidden, self.act_size[0], activation=None)
-            squared_difference = tf.reduce_sum(tf.squared_difference(pred_action,
-                                                                     self.selected_actions),
-                                               axis=1)
-            self.inverse_loss = tf.reduce_mean(tf.dynamic_partition(
-                squared_difference, self.mask, 2)[1])
-        else:
-            pred_action = tf.concat(
-                [tf.layers.dense(hidden, self.act_size[i], activation=tf.nn.softmax)
-                 for i in range(len(self.act_size))], axis=1)
-            cross_entropy = tf.reduce_sum(-tf.log(pred_action + 1e-10) * self.selected_actions,
-                                          axis=1)
-            self.inverse_loss = tf.reduce_mean(
-                tf.dynamic_partition(cross_entropy, self.mask, 2)[1])
+        pred_action = tf.concat(
+            [tf.layers.dense(hidden, self.act_size[i], activation=tf.nn.softmax)
+             for i in range(len(self.act_size))], axis=1)
+        cross_entropy = tf.reduce_sum(-tf.log(pred_action + 1e-10) * self.selected_actions,
+                                      axis=1)
+        self.inverse_loss = tf.reduce_mean(
+            tf.dynamic_partition(cross_entropy, self.mask, 2)[1])
 
     def create_forward_model(self, encoded_state, encoded_next_state):
         """

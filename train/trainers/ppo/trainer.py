@@ -302,15 +302,8 @@ class PPOTrainer(Trainer):
                             stored_info.memories[idx])
                     actions = stored_take_action_outputs['action']
                     
-                    if self.policy.use_continuous_act:
-                        actions_pre = stored_take_action_outputs['pre_action']
-                        self.training_buffer[agent_id]['actions_pre'].append(actions_pre[idx])
-                        epsilons = stored_take_action_outputs['random_normal_epsilon']
-                        self.training_buffer[agent_id]['random_normal_epsilon'].append(
-                            epsilons[idx])
-                    else:
-                        self.training_buffer[agent_id]['action_mask'].append(
-                            stored_info.action_masks[idx], padding_value=1)
+                    self.training_buffer[agent_id]['action_mask'].append(
+                        stored_info.action_masks[idx], padding_value=1)
                         
                     a_dist = stored_take_action_outputs['log_probs']
                     value = stored_take_action_outputs['value']
