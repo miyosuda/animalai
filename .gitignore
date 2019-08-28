@@ -3,3 +3,5 @@ env/*
 train/models
 train/summaries
 train/UnitySDK.log
+
+*.mov

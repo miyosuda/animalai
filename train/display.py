@@ -27,7 +27,8 @@ class MovieWriter(object):
         frame_size is (w, h)
         """
         self._frame_size = frame_size
-        fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v')
+        #fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v')
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         self.vout = cv2.VideoWriter()
         success = self.vout.open(file_name, fourcc, fps, frame_size, True)
         if not success:
@@ -297,7 +298,7 @@ def main():
             d = d.reshape((display_size[1], display_size[0], 3))
             writer.add_frame(d)
 
-    if flags.recording:
+    if recording:
         writer.close()
 
 
