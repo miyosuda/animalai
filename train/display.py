@@ -265,13 +265,13 @@ def init_env(env_path):
     
 
 def main():
-    arena_config_path   = './configs/1-Food.yaml'
+    model_path          = './models/run_001/Learner'    
+    arena_config_path   = './configs/3-Obstacles.yaml'
+
     env_path            = '../env/AnimalAI'
     trainer_config_path = './configs/trainer_config.yaml'
-    model_path          = './models/run_food1/Learner'
-    #model_path         = './models/run_001/Learner'
     
-    recording = True
+    recording = False
     display_size = (440, 400)
 
     agent = init_agent(trainer_config_path, model_path)

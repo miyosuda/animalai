@@ -150,11 +150,11 @@ class Trainer(object):
         """
         self.policy.save_model(self.get_step)
 
-    def export_model(self):
-        """
-        Exports the model
-        """
-        self.policy.export_model()
+    #def export_model(self):
+    #    """
+    #    Exports the model
+    #    """
+    #    self.policy.export_model()
 
     def write_summary(self, global_step, lesson_num=0):
         """

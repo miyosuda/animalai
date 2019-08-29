@@ -94,25 +94,6 @@ class TrainerController(object):
                          'while the graph is generated.')
         self._save_model(steps)
 
-    def _win_handler(self, event):
-        """
-        This function gets triggered after ctrl-c or ctrl-break is pressed
-        under Windows platform.
-        """
-        if event in (win32con.CTRL_C_EVENT, win32con.CTRL_BREAK_EVENT):
-            self._save_model_when_interrupted(self.global_step)
-            self._export_graph()
-            sys.exit()
-            return True
-        return False
-
-    def _export_graph(self):
-        """
-        Exports latest saved models to .nn format for Unity embedding.
-        """
-        for brain_name in self.trainers.keys():
-            self.trainers[brain_name].export_model()
-
     def initialize_trainers(self, trainer_config):
         """
         Initialization of the trainers
@@ -213,9 +194,6 @@ class TrainerController(object):
                 self._save_model_when_interrupted(steps=self.global_step)
             pass
         env.close()
-
-        if self.train_model:
-            self._export_graph()
 
     def take_step(self, env, curr_info):
         # If any lessons were incremented or the environment is
