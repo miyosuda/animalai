@@ -5,6 +5,8 @@ import os
 from collections import deque
 import pygame, sys
 from pygame.locals import *
+import argparse
+from distutils.util import strtobool
 
 import yaml
 
@@ -19,6 +21,7 @@ BLUE  = (128, 128, 255)
 RED   = (255, 192, 192)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GRAY  = (128, 128, 128)
 
 
 class MovieWriter(object):
@@ -164,6 +167,41 @@ class Display(object):
 
         self.draw_center_text("V", left + width / 2, bottom + 10)
 
+    def show_agent_pos_angle(self, pos_angle):
+        """ Draw agent position and angle (for custom environment) """
+        top = 8
+        left = 150
+        width = 100
+        height = 100
+        bottom = top + width
+        right = left + height
+
+        pos = pos_angle[0]
+        angle = pos_angle[1] / 360.0 * (2.0 * np.pi)
+        
+        target_pos_0 = pos[0] + np.sin(angle) * 5
+        target_pos_1 = pos[2] + np.cos(angle) * 5
+        target_pos = (target_pos_0, target_pos_1)
+        
+        relateive_pos        = (pos[0]        / 40.0, pos[2]        / 40.0)
+        relateive_target_pos = (target_pos[0] / 40.0, target_pos[1] / 40.0)
+        screen_pos        = (int(relateive_pos[0]              * width + left),
+                             int((1.0-relateive_pos[1])        * height + top))
+        target_screen_pos = (int(relateive_target_pos[0]       * width + left),
+                             int((1.0-relateive_target_pos[1]) * height + top))
+
+        # draw position
+        pygame.draw.circle(self.surface, RED, screen_pos, 5)
+        # draw angle target
+        pygame.draw.line(self.surface, WHITE,
+                         screen_pos, target_screen_pos, 1)
+
+        # draw frame
+        pygame.draw.line(self.surface, GRAY, (left, top), (left, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (right, top), (right, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (left, top), (right, top), 1)
+        pygame.draw.line(self.surface, GRAY, (left, bottom), (right, bottom), 1)
+
     def show_reward(self):
         self.draw_text("REWARD: {}".format(self.episode_reward), 310, 10)
 
@@ -182,12 +220,13 @@ class Display(object):
         if self.obs == None:
             self.obs, self.reward, self.done, self.info = self.env.step([0, 0])
             
-        action, log_probs, value, entropy = self.agent.step(self.obs,
-                                                            self.reward,
-                                                            self.done,
-                                                            self.info)
+        action, log_probs, value, entropy, pos_angle = self.agent.step(self.obs,
+                                                                       self.reward,
+                                                                       self.done,
+                                                                       self.info)
+        
         self.obs, self.reward, self.done, self.info = self.env.step(action)
-        state = self.obs[0]
+        state = self.obs[0] # float64
 
         self.episode_reward += self.reward
         self.value_history.add_value(value)
@@ -203,6 +242,10 @@ class Display(object):
         self.show_policy(pi1, 10, 250, "PI (R<->L)")
         self.show_value()
         self.show_reward()
+
+        if pos_angle is not None:
+            self.show_agent_pos_angle(pos_angle)
+
 
 class Agent(object):
     def __init__(self,
@@ -237,24 +280,39 @@ class Agent(object):
     def reset(self, t=250):
         pass
 
+    def fix_brain_info(self, brain_info):
+        if brain_info.vector_observations.shape[1] > 3:
+            # カスタム環境用にvector_observationsをいじったものだった場合
+            extended_infos = brain_info.vector_observations[:,3:]
+            # 元の3次元だけのvector_observationsに戻す
+            brain_info.vector_observations = brain_info.vector_observations[:,:3]
+            agent_pos   = extended_infos[:,:3]
+            agent_angle = extended_infos[:,3]
+            return (agent_pos[0], agent_angle[0])
+        else:
+            return None
+
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
+        pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
+        
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
         log_probs = out['log_probs']
         value     = out['value']
         entropy   = out['entropy']
-        return action, log_probs, value, entropy
+        return action, log_probs, value, entropy, pos_angle
+
 
 def init_agent(trainer_config_path, model_path):
     agent = Agent(trainer_config_path, model_path)
     return agent
 
 
-def init_env(env_path):
+def init_env(env_path, env_seed):
     env = AnimalAIEnv(
         environment_filename=env_path,
-        seed=0,
+        seed=env_seed,
         retro=False,
         n_arenas=1,
         worker_id=1,
@@ -265,17 +323,28 @@ def init_env(env_path):
     
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--recording", type=strtobool, default="false")
+    parser.add_argument("--custom_env", type=strtobool, default="false")
+    args = parser.parse_args()
+    
     model_path          = './models/run_001/Learner'    
     arena_config_path   = './configs/3-Obstacles.yaml'
 
-    env_path            = '../env/AnimalAI'
+    if args.custom_env:
+        # Using custom environment for pos/angle visualization
+        env_path = '../env/AnimalAICustom'
+    else:
+        env_path = '../env/AnimalAI'
+    
     trainer_config_path = './configs/trainer_config.yaml'
     
-    recording = False
+    recording = args.recording
     display_size = (440, 400)
 
     agent = init_agent(trainer_config_path, model_path)
-    env = init_env(env_path)
+    env = init_env(env_path, args.seed)
 
     display = Display(display_size, agent, env)
     clock = pygame.time.Clock()

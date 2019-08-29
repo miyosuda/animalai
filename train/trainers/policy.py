@@ -47,7 +47,6 @@ class Policy(object):
         self.seed               = seed
         self.brain              = brain
         self.use_recurrent      = trainer_parameters["use_recurrent"]
-        #self.use_continuous_act = (brain.vector_action_space_type == "continuous")
         self.model_path         = trainer_parameters["model_path"]
         self.keep_checkpoints   = trainer_parameters.get("keep_checkpoints", 5)
         

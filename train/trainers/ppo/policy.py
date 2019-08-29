@@ -64,6 +64,7 @@ class PPOPolicy(Policy):
         
         if self.use_recurrent:
             self.inference_dict['memory_out'] = self.model.memory_out
+            
         if is_training and self.use_vec_obs and trainer_params['normalize']:
             self.inference_dict['update_mean']     = self.model.update_mean
             self.inference_dict['update_variance'] = self.model.update_variance
@@ -235,8 +236,6 @@ class PPOPolicy(Policy):
             if brain_info.memories.shape[1] == 0:
                 brain_info.memories = self.make_empty_memory(len(brain_info.agents))
             feed_dict[self.model.memory_in] = [brain_info.memories[idx]]
-            
-        if self.use_recurrent:
             feed_dict[self.model.prev_action] = brain_info.previous_vector_actions[idx].reshape(
                 [-1, len(self.model.act_size)])
             

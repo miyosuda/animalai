@@ -32,25 +32,27 @@ class TrainerController(object):
                  training_seed: int,
                  config=None):
         """
-        :param model_path: 
+        Arguments:
+
+        model_path: 
             Path to save the model.
-        :param summaries_dir: 
+        summaries_dir: 
             Folder to save training summaries.
-        :param run_id: 
+        run_id: 
             The sub-directory name for model and summary statistics
-        :param save_freq: 
+        save_freq: 
             Frequency at which to save model
-        :param load: 
+        load: 
             Whether to load the model or randomly initialize.
-        :param train: 
+        train: 
             Whether to train model, or only run inference.
-        :param keep_checkpoints: 
+        keep_checkpoints: 
             How many model checkpoints to keep.
-        :param lesson: 
+        lesson: 
             Start learning from this lesson.
-        :param external_brains: 
+        external_brains: 
             dictionary of external brain names to BrainInfo objects.
-        :param training_seed: 
+        training_seed: 
             Seed to use for Numpy and Tensorflow random number generation.
         """
 
@@ -70,6 +72,7 @@ class TrainerController(object):
         self.seed = training_seed
         self.config = config
         self.update_config = True
+        
         np.random.seed(self.seed)
         tf.set_random_seed(self.seed)
 
@@ -80,9 +83,9 @@ class TrainerController(object):
         """
         Saves current model to checkpoint folder.
 
-        :param steps: 
+        steps: 
             Current number of steps in training process.
-        :param saver: 
+        saver: 
             Tensorflow saver for session.
         """
         for brain_name in self.trainers.keys():
@@ -98,7 +101,7 @@ class TrainerController(object):
         """
         Initialization of the trainers
 
-        :param trainer_config: 
+        trainer_config: 
             The configurations of the trainers
         """
         trainer_parameters_dict = {}
@@ -126,7 +129,10 @@ class TrainerController(object):
                     self.external_brains[brain_name],
                     0,
                     trainer_parameters_dict[brain_name],
-                    self.train_model, self.load_model, self.seed, self.run_id)
+                    self.train_model,
+                    self.load_model,
+                    self.seed,
+                    self.run_id)
             else:
                 raise UnityEnvironmentException('The trainer config contains '
                                                 'an unknown trainer type for '
@@ -172,12 +178,13 @@ class TrainerController(object):
             self.logger.info(t)
 
         curr_info = self._reset_env(env)
+        
         if self.train_model:
             for brain_name, trainer in self.trainers.items():
                 trainer.write_tensorboard_text('Hyperparameters', trainer.parameters)
+        
         try:
-            while any([t.get_step <= t.get_max_steps \
-                       for k, t in self.trainers.items()]) \
+            while any([t.get_step <= t.get_max_steps for k, t in self.trainers.items()]) \
                   or not self.train_model:
                 new_info = self.take_step(env, curr_info)
                 self.global_step += 1

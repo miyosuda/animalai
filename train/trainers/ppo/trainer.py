@@ -353,6 +353,7 @@ class PPOTrainer(Trainer):
         """
 
         info = new_info[self.brain_name]
+        
         for l in range(len(info.agents)):
             agent_actions = self.training_buffer[info.agents[l]]['actions']
             
