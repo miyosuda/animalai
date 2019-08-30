@@ -62,11 +62,13 @@ public class TrainingAgent : Agent, IPrefab
         AddVectorObs(localVel);
 
         // CHANGED: Custumly added global positaion and rotation
+        /*
         Vector3 position = _rigidBody.position;
         AddVectorObs(position);
 
         float rotation = transform.eulerAngles.y;
         AddVectorObs(rotation);
+        */
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
