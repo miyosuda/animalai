@@ -160,7 +160,7 @@ class TrainerController(object):
         """
         if self.update_config:
             return env.reset(arenas_configurations=self.config)
-            #self.update_config = False
+            self.update_config = False
         else:
             return env.reset()
 
@@ -178,19 +178,25 @@ class TrainerController(object):
             self.logger.info(t)
 
         curr_info = self._reset_env(env)
-        
+
+        # Tensorboardにハイパーパラメータを記録
         if self.train_model:
             for brain_name, trainer in self.trainers.items():
                 trainer.write_tensorboard_text('Hyperparameters', trainer.parameters)
         
         try:
+            # 学習ループ
             while any([t.get_step <= t.get_max_steps for k, t in self.trainers.items()]) \
                   or not self.train_model:
+                # 学習を1ステップ進める
                 new_info = self.take_step(env, curr_info)
+                
                 self.global_step += 1
+                
                 if self.global_step % self.save_freq == 0 and self.global_step != 0 \
                         and self.train_model:
                     # Save Tensorflow model
+                    # 学習モデルの保存
                     self._save_model(steps=self.global_step)
                 curr_info = new_info
             # Final save Tensorflow model
@@ -203,8 +209,7 @@ class TrainerController(object):
         env.close()
 
     def take_step(self, env, curr_info):
-        # If any lessons were incremented or the environment is
-        # ready to be reset
+        # If any lessons were incremented or the environment is ready to be reset
         if env.global_done:
             curr_info = self._reset_env(env)
             for brain_name, trainer in self.trainers.items():
@@ -223,8 +228,7 @@ class TrainerController(object):
              take_action_memories[brain_name],
              take_action_text[brain_name],
              take_action_value[brain_name],
-             take_action_outputs[brain_name]) = \
-                trainer.take_action(curr_info)
+             take_action_outputs[brain_name]) = trainer.take_action(curr_info)
             
         new_info = env.step(vector_action=take_action_vector,
                             memory=take_action_memories,
