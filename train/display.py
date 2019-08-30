@@ -336,7 +336,8 @@ def main():
         # Using custom environment for pos/angle visualization
         env_path = '../env/AnimalAICustom'
     else:
-        env_path = '../env/AnimalAI'
+        #env_path = '../env/AnimalAI'
+        env_path = '../env/AnimalAIFast'
     
     trainer_config_path = './configs/trainer_config.yaml'
     
