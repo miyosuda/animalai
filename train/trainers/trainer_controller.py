@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # # Unity ML-Agents Toolkit
 # ## ML-Agent Learning
 """Launches trainers for each External Brains in a Unity Environment."""
@@ -31,16 +32,28 @@ class TrainerController(object):
                  training_seed: int,
                  config=None):
         """
-        :param model_path: Path to save the model.
-        :param summaries_dir: Folder to save training summaries.
-        :param run_id: The sub-directory name for model and summary statistics
-        :param save_freq: Frequency at which to save model
-        :param load: Whether to load the model or randomly initialize.
-        :param train: Whether to train model, or only run inference.
-        :param keep_checkpoints: How many model checkpoints to keep.
-        :param lesson: Start learning from this lesson.
-        :param external_brains: dictionary of external brain names to BrainInfo objects.
-        :param training_seed: Seed to use for Numpy and Tensorflow random number generation.
+        Arguments:
+
+        model_path: 
+            Path to save the model.
+        summaries_dir: 
+            Folder to save training summaries.
+        run_id: 
+            The sub-directory name for model and summary statistics
+        save_freq: 
+            Frequency at which to save model
+        load: 
+            Whether to load the model or randomly initialize.
+        train: 
+            Whether to train model, or only run inference.
+        keep_checkpoints: 
+            How many model checkpoints to keep.
+        lesson: 
+            Start learning from this lesson.
+        external_brains: 
+            dictionary of external brain names to BrainInfo objects.
+        training_seed: 
+            Seed to use for Numpy and Tensorflow random number generation.
         """
 
         self.model_path = model_path
@@ -59,6 +72,7 @@ class TrainerController(object):
         self.seed = training_seed
         self.config = config
         self.update_config = True
+        
         np.random.seed(self.seed)
         tf.set_random_seed(self.seed)
 
@@ -68,8 +82,11 @@ class TrainerController(object):
     def _save_model(self, steps=0):
         """
         Saves current model to checkpoint folder.
-        :param steps: Current number of steps in training process.
-        :param saver: Tensorflow saver for session.
+
+        steps: 
+            Current number of steps in training process.
+        saver: 
+            Tensorflow saver for session.
         """
         for brain_name in self.trainers.keys():
             self.trainers[brain_name].save_model()
@@ -80,29 +97,12 @@ class TrainerController(object):
                          'while the graph is generated.')
         self._save_model(steps)
 
-    def _win_handler(self, event):
-        """
-        This function gets triggered after ctrl-c or ctrl-break is pressed
-        under Windows platform.
-        """
-        if event in (win32con.CTRL_C_EVENT, win32con.CTRL_BREAK_EVENT):
-            self._save_model_when_interrupted(self.global_step)
-            self._export_graph()
-            sys.exit()
-            return True
-        return False
-
-    def _export_graph(self):
-        """
-        Exports latest saved models to .nn format for Unity embedding.
-        """
-        for brain_name in self.trainers.keys():
-            self.trainers[brain_name].export_model()
-
     def initialize_trainers(self, trainer_config):
         """
         Initialization of the trainers
-        :param trainer_config: The configurations of the trainers
+
+        trainer_config: 
+            The configurations of the trainers
         """
         trainer_parameters_dict = {}
 
@@ -129,7 +129,10 @@ class TrainerController(object):
                     self.external_brains[brain_name],
                     0,
                     trainer_parameters_dict[brain_name],
-                    self.train_model, self.load_model, self.seed, self.run_id)
+                    self.train_model,
+                    self.load_model,
+                    self.seed,
+                    self.run_id)
             else:
                 raise UnityEnvironmentException('The trainer config contains '
                                                 'an unknown trainer type for '
@@ -157,7 +160,7 @@ class TrainerController(object):
         """
         if self.update_config:
             return env.reset(arenas_configurations=self.config)
-            #self.update_config = False
+            self.update_config = False
         else:
             return env.reset()
 
@@ -170,22 +173,30 @@ class TrainerController(object):
 
         # Prevent a single session from taking all GPU memory.
         self.initialize_trainers(trainer_config)
+        
         for _, t in self.trainers.items():
             self.logger.info(t)
 
         curr_info = self._reset_env(env)
+
+        # Tensorboardにハイパーパラメータを記録
         if self.train_model:
             for brain_name, trainer in self.trainers.items():
                 trainer.write_tensorboard_text('Hyperparameters', trainer.parameters)
+        
         try:
-            while any([t.get_step <= t.get_max_steps \
-                       for k, t in self.trainers.items()]) \
+            # 学習ループ
+            while any([t.get_step <= t.get_max_steps for k, t in self.trainers.items()]) \
                   or not self.train_model:
+                # 学習を1ステップ進める
                 new_info = self.take_step(env, curr_info)
+                
                 self.global_step += 1
+                
                 if self.global_step % self.save_freq == 0 and self.global_step != 0 \
                         and self.train_model:
                     # Save Tensorflow model
+                    # 学習モデルの保存
                     self._save_model(steps=self.global_step)
                 curr_info = new_info
             # Final save Tensorflow model
@@ -197,12 +208,8 @@ class TrainerController(object):
             pass
         env.close()
 
-        if self.train_model:
-            self._export_graph()
-
     def take_step(self, env, curr_info):
-        # If any lessons were incremented or the environment is
-        # ready to be reset
+        # If any lessons were incremented or the environment is ready to be reset
         if env.global_done:
             curr_info = self._reset_env(env)
             for brain_name, trainer in self.trainers.items():
@@ -221,8 +228,7 @@ class TrainerController(object):
              take_action_memories[brain_name],
              take_action_text[brain_name],
              take_action_value[brain_name],
-             take_action_outputs[brain_name]) = \
-                trainer.take_action(curr_info)
+             take_action_outputs[brain_name]) = trainer.take_action(curr_info)
             
         new_info = env.step(vector_action=take_action_vector,
                             memory=take_action_memories,

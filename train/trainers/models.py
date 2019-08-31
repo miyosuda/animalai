@@ -14,6 +14,7 @@ class LearningModel(object):
     def __init__(self, m_size, normalize, use_recurrent, brain, seed):
         tf.set_random_seed(seed)
         self.brain = brain
+        
         self.vector_in = None
         self.global_step, self.increment_step = self.create_global_steps()
         self.visual_in = []
@@ -42,7 +43,7 @@ class LearningModel(object):
                             brain.num_stacked_vector_observations
         self.vis_obs_size = brain.number_visual_observations
         
-        tf.Variable(int(brain.vector_action_space_type == 'continuous'),
+        tf.Variable(0,
                     name='is_continuous_control',
                     trainable=False,
                     dtype=tf.int32)
@@ -54,16 +55,10 @@ class LearningModel(object):
                     name="memory_size",
                     trainable=False,
                     dtype=tf.int32)
-        if brain.vector_action_space_type == 'continuous':
-            tf.Variable(self.act_size[0],
-                        name="action_output_shape",
-                        trainable=False,
-                        dtype=tf.int32)
-        else:
-            tf.Variable(sum(self.act_size),
-                        name="action_output_shape",
-                        trainable=False,
-                        dtype=tf.int32)
+        tf.Variable(sum(self.act_size),
+                    name="action_output_shape",
+                    trainable=False,
+                    dtype=tf.int32)
 
     @staticmethod
     def create_global_steps():
@@ -84,9 +79,13 @@ class LearningModel(object):
     def create_visual_input(camera_parameters, name):
         """
         Creates image input op.
-        :param camera_parameters: Parameters for visual observation from BrainInfo.
-        :param name: Desired name of input op.
-        :return: input op.
+
+        camera_parameters: 
+            Parameters for visual observation from BrainInfo.
+        name: 
+            Desired name of input op.
+        :return: 
+            input op.
         """
         o_size_h = camera_parameters['height']
         o_size_w = camera_parameters['width']
@@ -108,8 +107,11 @@ class LearningModel(object):
     def create_vector_input(self, name='vector_observation'):
         """
         Creates ops for vector observation input.
-        :param name: Name of the placeholder op.
-        :param vec_obs_size: Size of stacked vector observation.
+
+        name: 
+            Name of the placeholder op.
+        vec_obs_size: 
+            Size of stacked vector observation.
         :return:
         """
         self.vector_in = tf.placeholder(shape=[None, self.vec_obs_size],
@@ -156,13 +158,21 @@ class LearningModel(object):
                                           reuse):
         """
         Builds a set of hidden state encoders.
-        :param reuse: Whether to re-use the weights within the same scope.
-        :param scope: Graph scope for the encoder ops.
-        :param observation_input: Input vector.
-        :param h_size: Hidden layer size.
-        :param activation: What type of activation function to use for layers.
-        :param num_layers: number of hidden layers to create.
-        :return: List of hidden layer tensors.
+
+        reuse: 
+            Whether to re-use the weights within the same scope.
+        scope: 
+            Graph scope for the encoder ops.
+        observation_input: 
+            Input vector.
+        h_size: 
+            Hidden layer size.
+        activation: 
+            What type of activation function to use for layers.
+        num_layers: 
+            number of hidden layers to create.
+        :return: 
+            List of hidden layer tensors.
         """
         with tf.variable_scope(scope):
             hidden = observation_input
@@ -185,34 +195,61 @@ class LearningModel(object):
                                           reuse):
         """
         Builds a set of visual (CNN) encoders.
-        :param reuse: Whether to re-use the weights within the same scope.
-        :param scope: The scope of the graph within which to create the ops.
-        :param image_input: The placeholder for the image input to use.
-        :param h_size: Hidden layer size.
-        :param activation: What type of activation function to use for layers.
-        :param num_layers: number of hidden layers to create.
-        :return: List of hidden layer tensors.
+
+        reuse: 
+            Whether to re-use the weights within the same scope.
+        scope: 
+            The scope of the graph within which to create the ops.
+        image_input: 
+            The placeholder for the image input to use.
+        h_size: 
+            Hidden layer size.
+        activation: 
+            What type of activation function to use for layers.
+        num_layers: 
+            number of hidden layers to create.
+        :return: 
+            List of hidden layer tensors.
         """
         with tf.variable_scope(scope):
-            conv1 = tf.layers.conv2d(image_input, 16, kernel_size=[8, 8], strides=[4, 4],
-                                     activation=tf.nn.elu, reuse=reuse, name="conv_1")
-            conv2 = tf.layers.conv2d(conv1, 32, kernel_size=[4, 4], strides=[2, 2],
-                                     activation=tf.nn.elu, reuse=reuse, name="conv_2")
+            conv1 = tf.layers.conv2d(image_input,
+                                     16,
+                                     kernel_size=[8, 8],
+                                     strides=[4, 4],
+                                     activation=tf.nn.elu,
+                                     reuse=reuse, name="conv_1")
+            conv2 = tf.layers.conv2d(conv1,
+                                     32,
+                                     kernel_size=[4, 4],
+                                     strides=[2, 2],
+                                     activation=tf.nn.elu,
+                                     reuse=reuse, name="conv_2")
             hidden = c_layers.flatten(conv2)
 
         with tf.variable_scope(scope + '/' + 'flat_encoding'):
-            hidden_flat = self.create_vector_observation_encoder(hidden, h_size, activation,
-                                                                 num_layers, scope, reuse)
+            hidden_flat = self.create_vector_observation_encoder(hidden,
+                                                                 h_size,
+                                                                 activation,
+                                                                 num_layers,
+                                                                 scope,
+                                                                 reuse)
         return hidden_flat
 
     @staticmethod
     def create_discrete_action_masking_layer(all_logits, action_masks, action_size):
         """
         Creates a masking layer for the discrete actions
-        :param all_logits: The concatenated unnormalized action probabilities for all branches
-        :param action_masks: The mask for the logits. Must be of dimension [None x total_number_of_action]
-        :param action_size: A list containing the number of possible actions for each branch
-        :return: The action output dimension [batch_size, num_branches] and the concatenated normalized logits
+
+        all_logits: 
+            The concatenated unnormalized action probabilities for all branches
+        action_masks: 
+            The mask for the logits. Must be of dimension [None x total_number_of_action]
+        action_size: 
+            A list containing the number of possible actions for each branch
+
+        :return: 
+            The action output dimension [batch_size, num_branches] and the concatenated
+            normalized logits
         """
         action_idx = [0] + list(np.cumsum(action_size))
         branches_logits = [all_logits[:, action_idx[i]:action_idx[i + 1]]
@@ -232,10 +269,15 @@ class LearningModel(object):
     def create_observation_streams(self, num_streams, h_size, num_layers):
         """
         Creates encoding stream for observations.
-        :param num_streams: Number of streams to create.
-        :param h_size: Size of hidden linear layers in stream.
-        :param num_layers: Number of hidden linear layers in stream.
-        :return: List of encoded streams.
+
+        num_streams: 
+            Number of streams to create.
+        h_size: 
+            Size of hidden linear layers in stream.
+        num_layers: 
+            Number of hidden linear layers in stream.
+        :return: 
+            List of encoded streams.
         """
         brain = self.brain
         activation_fn = self.swish
@@ -285,10 +327,15 @@ class LearningModel(object):
     def create_recurrent_encoder(input_state, memory_in, sequence_length, name='lstm'):
         """
         Builds a recurrent encoder for either state or observations (LSTM).
-        :param sequence_length: Length of sequence to unroll.
-        :param input_state: The input tensor to the LSTM cell.
-        :param memory_in: The input memory to the LSTM cell.
-        :param name: The scope of the LSTM cell.
+
+        sequence_length: 
+            Length of sequence to unroll.
+        input_state: 
+            The input tensor to the LSTM cell.
+        memory_in: 
+            The input memory to the LSTM cell.
+        name: 
+            The scope of the LSTM cell.
         """
         s_size = input_state.get_shape().as_list()[1]
         m_size = memory_in.get_shape().as_list()[1]
@@ -306,79 +353,14 @@ class LearningModel(object):
         recurrent_output = tf.reshape(recurrent_output, shape=[-1, _half_point])
         return recurrent_output, tf.concat([lstm_state_out.c, lstm_state_out.h], axis=1)
 
-    def create_cc_actor_critic(self, h_size, num_layers):
-        """
-        Creates Continuous control actor-critic model.
-        :param h_size: Size of hidden linear layers.
-        :param num_layers: Number of hidden linear layers.
-        """
-        hidden_streams = self.create_observation_streams(2, h_size, num_layers)
-
-        if self.use_recurrent:
-            self.memory_in = tf.placeholder(shape=[None, self.m_size], dtype=tf.float32,
-                                            name='recurrent_in')
-            _half_point = int(self.m_size / 2)
-            hidden_policy, memory_policy_out = self.create_recurrent_encoder(
-                hidden_streams[0], self.memory_in[:, :_half_point], self.sequence_length,
-                name='lstm_policy')
-
-            hidden_value, memory_value_out = self.create_recurrent_encoder(
-                hidden_streams[1], self.memory_in[:, _half_point:], self.sequence_length,
-                name='lstm_value')
-            self.memory_out = tf.concat([memory_policy_out, memory_value_out], axis=1,
-                                        name='recurrent_out')
-        else:
-            hidden_policy = hidden_streams[0]
-            hidden_value = hidden_streams[1]
-
-        mu = tf.layers.dense(hidden_policy, self.act_size[0], activation=None,
-                             kernel_initializer=c_layers.variance_scaling_initializer(
-                                 factor=0.01))
-
-        log_sigma_sq = tf.get_variable("log_sigma_squared",
-                                       [self.act_size[0]],
-                                       dtype=tf.float32,
-                                       initializer=tf.zeros_initializer())
-
-        sigma_sq = tf.exp(log_sigma_sq)
-
-        self.epsilon = tf.placeholder(shape=[None, self.act_size[0]],
-                                      dtype=tf.float32, name='epsilon')
-        # Clip and scale output to ensure actions are always within [-1, 1] range.
-        self.output_pre = mu + tf.sqrt(sigma_sq) * self.epsilon
-        output_post = tf.clip_by_value(self.output_pre, -3, 3) / 3
-        self.output = tf.identity(output_post, name='action')
-        self.selected_actions = tf.stop_gradient(output_post)
-
-        # Compute probability of model output.
-        all_probs = - 0.5 * tf.square(tf.stop_gradient(self.output_pre) - mu) / sigma_sq \
-                    - 0.5 * tf.log(2.0 * np.pi) - 0.5 * log_sigma_sq
-
-        self.all_log_probs = tf.identity(all_probs, name='action_probs')
-
-        self.entropy = 0.5 * tf.reduce_mean(tf.log(2 * np.pi * np.e) + log_sigma_sq)
-
-        value = tf.layers.dense(hidden_value, 1, activation=None)
-        self.value = tf.identity(value, name="value_estimate")
-
-        self.all_old_log_probs = tf.placeholder(shape=[None, self.act_size[0]],
-                                                dtype=tf.float32,
-                                                name='old_probabilities')
-
-        # We keep these tensors the same name, but use new nodes to keep
-        # code parallelism with discrete control.
-        self.log_probs = tf.reduce_sum((tf.identity(self.all_log_probs)),
-                                       axis=1,
-                                       keepdims=True)
-        self.old_log_probs = tf.reduce_sum((tf.identity(self.all_old_log_probs)),
-                                           axis=1,
-                                           keepdims=True)
-
     def create_dc_actor_critic(self, h_size, num_layers):
         """
         Creates Discrete control actor-critic model.
-        :param h_size: Size of hidden linear layers.
-        :param num_layers: Number of hidden linear layers.
+
+        h_size:
+            Size of hidden linear layers.
+        num_layers: 
+            Number of hidden linear layers.
         """
         hidden_streams = self.create_observation_streams(1, h_size, num_layers)
         hidden = hidden_streams[0]

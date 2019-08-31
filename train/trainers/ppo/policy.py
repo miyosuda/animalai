@@ -17,11 +17,17 @@ class PPOPolicy(Policy):
                  load):
         """
         Policy for Proximal Policy Optimization Networks.
-        :param seed: Random seed.
-        :param brain: Assigned Brain object.
-        :param trainer_params: Defined training parameters.
-        :param is_training: Whether the model should be trained.
-        :param load: Whether a pre-trained model will be loaded or a new one created.
+
+        :param seed: 
+            Random seed.
+        :param brain: 
+            Assigned Brain object.
+        :param trainer_params: 
+            Defined training parameters.
+        :param is_training: 
+            Whether the model should be trained.
+        :param load: 
+            Whether a pre-trained model will be loaded or a new one created.
         """
         super().__init__(seed, brain, trainer_params)
         self.has_updated = False
@@ -56,17 +62,16 @@ class PPOPolicy(Policy):
             'learning_rate' : self.model.learning_rate
         }
         
-        if self.use_continuous_act:
-            self.inference_dict['pre_action'] = self.model.output_pre
         if self.use_recurrent:
             self.inference_dict['memory_out'] = self.model.memory_out
+            
         if is_training and self.use_vec_obs and trainer_params['normalize']:
-            self.inference_dict['update_mean'] = self.model.update_mean
+            self.inference_dict['update_mean']     = self.model.update_mean
             self.inference_dict['update_variance'] = self.model.update_variance
 
         self.update_dict = {
-            'value_loss': self.model.value_loss,
-            'policy_loss': self.model.policy_loss,
+            'value_loss'  : self.model.value_loss,
+            'policy_loss' : self.model.policy_loss,
             'update_batch': self.model.update_batch
         }
         if self.use_curiosity:
@@ -76,8 +81,11 @@ class PPOPolicy(Policy):
     def evaluate(self, brain_info):
         """
         Evaluates policy for the agent experiences provided.
-        :param brain_info: BrainInfo object containing inputs.
-        :return: Outputs from network as defined by self.inference_dict.
+
+        :param brain_info: 
+            BrainInfo object containing inputs.
+        :return: 
+            Outputs from network as defined by self.inference_dict.
         """
         feed_dict = {
             self.model.batch_size : len(brain_info.vector_observations),
@@ -86,31 +94,28 @@ class PPOPolicy(Policy):
         epsilon = None
         
         if self.use_recurrent:
-            if not self.use_continuous_act:
-                feed_dict[self.model.prev_action] = brain_info.previous_vector_actions.reshape(
-                    [-1, len(self.model.act_size)])
+            feed_dict[self.model.prev_action] = brain_info.previous_vector_actions.reshape(
+                [-1, len(self.model.act_size)])
             if brain_info.memories.shape[1] == 0:
                 brain_info.memories = self.make_empty_memory(len(brain_info.agents))
             feed_dict[self.model.memory_in] = brain_info.memories
             
-        if self.use_continuous_act:
-            epsilon = np.random.normal(
-                size=(len(brain_info.vector_observations), self.model.act_size[0]))
-            feed_dict[self.model.epsilon] = epsilon
-            
         feed_dict = self._fill_eval_dict(feed_dict, brain_info)
+        
         run_out = self._execute_model(feed_dict, self.inference_dict)
         
-        if self.use_continuous_act:
-            run_out['random_normal_epsilon'] = epsilon
         return run_out
 
     def update(self, mini_batch, num_sequences):
         """
         Updates model using buffer.
-        :param num_sequences: Number of trajectories in batch.
-        :param mini_batch: Experience batch.
-        :return: Output from update process.
+
+        :param num_sequences: 
+            Number of trajectories in batch.
+        :param mini_batch: 
+            Experience batch.
+        :return: 
+            Output from update process.
         """
         feed_dict = {
             self.model.batch_size        : num_sequences,
@@ -123,19 +128,13 @@ class PPOPolicy(Policy):
                 [-1, sum(self.model.act_size)])
         }
         
-        if self.use_continuous_act:
-            feed_dict[self.model.output_pre] = mini_batch['actions_pre'].reshape(
-                [-1, self.model.act_size[0]])
-            feed_dict[self.model.epsilon] = mini_batch['random_normal_epsilon'].reshape(
-                [-1, self.model.act_size[0]])
-        else:
-            feed_dict[self.model.action_holder] = mini_batch['actions'].reshape(
+        feed_dict[self.model.action_holder] = mini_batch['actions'].reshape(
+            [-1, len(self.model.act_size)])
+        if self.use_recurrent:
+            feed_dict[self.model.prev_action] = mini_batch['prev_action'].reshape(
                 [-1, len(self.model.act_size)])
-            if self.use_recurrent:
-                feed_dict[self.model.prev_action] = mini_batch['prev_action'].reshape(
-                    [-1, len(self.model.act_size)])
-            feed_dict[self.model.action_masks] = mini_batch['action_mask'].reshape(
-                [-1, sum(self.brain.vector_action_space_size)])
+        feed_dict[self.model.action_masks] = mini_batch['action_mask'].reshape(
+            [-1, sum(self.brain.vector_action_space_size)])
             
         if self.use_vec_obs:
             feed_dict[self.model.vector_in] = mini_batch['vector_obs'].reshape(
@@ -173,9 +172,13 @@ class PPOPolicy(Policy):
     def get_intrinsic_rewards(self, curr_info, next_info):
         """
         Generates intrinsic reward used for Curiosity-based training.
-        :BrainInfo curr_info: Current BrainInfo.
-        :BrainInfo next_info: Next BrainInfo.
-        :return: Intrinsic rewards for all agents.
+
+        :BrainInfo curr_info: 
+            Current BrainInfo.
+        :BrainInfo next_info: 
+            Next BrainInfo.
+        :return: 
+            Intrinsic rewards for all agents.
         """
         if self.use_curiosity:
             if len(curr_info.agents) == 0:
@@ -186,10 +189,7 @@ class PPOPolicy(Policy):
                 self.model.sequence_length : 1
             }
             
-            if self.use_continuous_act:
-                feed_dict[self.model.selected_actions] = next_info.previous_vector_actions
-            else:
-                feed_dict[self.model.action_holder] = next_info.previous_vector_actions
+            feed_dict[self.model.action_holder] = next_info.previous_vector_actions
                 
             for i in range(self.model.vis_obs_size):
                 feed_dict[self.model.visual_in[i]]      = curr_info.visual_observations[i]
@@ -213,9 +213,13 @@ class PPOPolicy(Policy):
     def get_value_estimate(self, brain_info, idx):
         """
         Generates value estimates for bootstrapping.
-        :param brain_info: BrainInfo to be used for bootstrapping.
-        :param idx: Index in BrainInfo of agent.
-        :return: Value estimate.
+
+        :param brain_info: 
+            BrainInfo to be used for bootstrapping.
+        :param idx: 
+            Index in BrainInfo of agent.
+        :return: 
+            Value estimate.
         """
         feed_dict = {
             self.model.batch_size: 1,
@@ -232,8 +236,6 @@ class PPOPolicy(Policy):
             if brain_info.memories.shape[1] == 0:
                 brain_info.memories = self.make_empty_memory(len(brain_info.agents))
             feed_dict[self.model.memory_in] = [brain_info.memories[idx]]
-            
-        if not self.use_continuous_act and self.use_recurrent:
             feed_dict[self.model.prev_action] = brain_info.previous_vector_actions[idx].reshape(
                 [-1, len(self.model.act_size)])
             
@@ -243,16 +245,20 @@ class PPOPolicy(Policy):
     def get_last_reward(self):
         """
         Returns the last reward the trainer has had
-        :return: the new last reward
+
+        :return: 
+            the new last reward
         """
         return self.sess.run(self.model.last_reward)
 
     def update_reward(self, new_reward):
         """
         Updates reward value for policy.
-        :param new_reward: New reward to save.
+
+        :param 
+            new_reward: New reward to save.
         """
         self.sess.run(self.model.update_reward,
                       feed_dict={
-                          self.model.new_reward: new_reward
+                          self.model.new_reward : new_reward
                       })

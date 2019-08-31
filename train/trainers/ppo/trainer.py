@@ -32,11 +32,17 @@ class PPOTrainer(Trainer):
                  run_id):
         """
         Responsible for collecting experiences and training PPO model.
-        :param trainer_parameters: The parameters for the trainer (dictionary).
-        :param training: Whether the trainer is set for training.
-        :param load: Whether the model should be loaded.
-        :param seed: The seed the model will be initialized with
-        :param run_id: The The identifier of the current run
+
+        :param trainer_parameters: 
+            The parameters for the trainer (dictionary).
+        :param training: 
+            Whether the trainer is set for training.
+        :param load: 
+            Whether the model should be loaded.
+        :param seed: 
+            The seed the model will be initialized with
+        :param run_id: 
+            The The identifier of the current run
         """
         super(PPOTrainer, self).__init__(brain, trainer_parameters, training, run_id)
         
@@ -116,7 +122,9 @@ class PPOTrainer(Trainer):
     def get_max_steps(self):
         """
         Returns the maximum number of steps. Is used to know when the trainer should be stopped.
-        :return: The maximum number of steps of the trainer
+
+        :return: 
+            The maximum number of steps of the trainer
         """
         return float(self.trainer_parameters['max_steps'])
 
@@ -124,7 +132,9 @@ class PPOTrainer(Trainer):
     def get_step(self):
         """
         Returns the number of steps the trainer has performed
-        :return: the step count of the trainer
+
+        :return: 
+            the step count of the trainer
         """
         return self.step
 
@@ -134,7 +144,9 @@ class PPOTrainer(Trainer):
         Returns the reward buffer. The reward buffer contains the cumulative
         rewards of the most recent episodes completed by agents using this
         trainer.
-        :return: the reward buffer.
+
+        :return: 
+            the reward buffer.
         """
         return self._reward_buffer
 
@@ -151,9 +163,12 @@ class PPOTrainer(Trainer):
     def take_action(self, all_brain_info: AllBrainInfo):
         """
         Decides actions given observations information, and takes them in environment.
-        :param all_brain_info: A dictionary of brain names and BrainInfo from environment.
-        :return: a tuple containing action, memories, values and an object
-        to be passed to add experiences
+
+        :param all_brain_info: 
+            A dictionary of brain names and BrainInfo from environment.
+        :return: 
+            a tuple containing action, memories, values and an object
+            to be passed to add experiences
         """
         curr_brain_info = all_brain_info[self.brain_name]
         if len(curr_brain_info.agents) == 0:
@@ -173,19 +188,22 @@ class PPOTrainer(Trainer):
         """
         Constructs a BrainInfo which contains the most recent previous experiences 
         for all agents info which correspond to the agents in a provided next_info.
-        :BrainInfo next_info: A t+1 BrainInfo.
-        :return: curr_info: Reconstructed BrainInfo to match agents of next_info.
+
+        :BrainInfo next_info: 
+            A t+1 BrainInfo.
+        :return: 
+            curr_info: Reconstructed BrainInfo to match agents of next_info.
         """
         visual_observations = [[]]
         vector_observations = []
-        text_observations = []
-        memories = []
-        rewards = []
-        local_dones = []
-        max_reacheds = []
-        agents = []
+        text_observations   = []
+        memories            = []
+        rewards             = []
+        local_dones         = []
+        max_reacheds        = []
+        agents              = []
         prev_vector_actions = []
-        prev_text_actions = []
+        prev_text_actions   = []
         
         for agent_id in next_info.agents:
             agent_brain_info = self.training_buffer[agent_id].last_brain_info
@@ -216,6 +234,7 @@ class PPOTrainer(Trainer):
             
         if self.policy.use_recurrent:
             memories = np.vstack(memories)
+            
         curr_info = BrainInfo(visual_observations,
                               vector_observations,
                               text_observations,
@@ -234,9 +253,13 @@ class PPOTrainer(Trainer):
                         take_action_outputs):
         """
         Adds experiences to each agent's experience history.
-        :param curr_all_info: Dictionary of all current brains and corresponding BrainInfo.
-        :param next_all_info: Dictionary of all current brains and corresponding BrainInfo.
-        :param take_action_outputs: The outputs of the take action method.
+
+        :param curr_all_info: 
+            Dictionary of all current brains and corresponding BrainInfo.
+        :param next_all_info: 
+            Dictionary of all current brains and corresponding BrainInfo.
+        :param 
+            take_action_outputs: The outputs of the take action method.
         """
         curr_info = curr_all_info[self.brain_name]
         next_info = next_all_info[self.brain_name]
@@ -279,15 +302,8 @@ class PPOTrainer(Trainer):
                             stored_info.memories[idx])
                     actions = stored_take_action_outputs['action']
                     
-                    if self.policy.use_continuous_act:
-                        actions_pre = stored_take_action_outputs['pre_action']
-                        self.training_buffer[agent_id]['actions_pre'].append(actions_pre[idx])
-                        epsilons = stored_take_action_outputs['random_normal_epsilon']
-                        self.training_buffer[agent_id]['random_normal_epsilon'].append(
-                            epsilons[idx])
-                    else:
-                        self.training_buffer[agent_id]['action_mask'].append(
-                            stored_info.action_masks[idx], padding_value=1)
+                    self.training_buffer[agent_id]['action_mask'].append(
+                        stored_info.action_masks[idx], padding_value=1)
                         
                     a_dist = stored_take_action_outputs['log_probs']
                     value = stored_take_action_outputs['value']
@@ -329,15 +345,20 @@ class PPOTrainer(Trainer):
         """
         Checks agent histories for processing condition, and processes them as necessary.
         Processing involves calculating value and advantage targets for model updating step.
-        :param current_info: Dictionary of all current brains and corresponding BrainInfo.
-        :param new_info: Dictionary of all next brains and corresponding BrainInfo.
+        
+        :param current_info: 
+            Dictionary of all current brains and corresponding BrainInfo.
+        :param new_info: 
+            Dictionary of all next brains and corresponding BrainInfo.
         """
 
         info = new_info[self.brain_name]
+        
         for l in range(len(info.agents)):
             agent_actions = self.training_buffer[info.agents[l]]['actions']
             
-            if ((info.local_done[l] or len(agent_actions) > self.trainer_parameters['time_horizon'])
+            if ((info.local_done[l] or len(agent_actions) > self.trainer_parameters[
+                    'time_horizon'])
                     and len(agent_actions) > 0):
                 agent_id = info.agents[l]
                 
@@ -364,8 +385,9 @@ class PPOTrainer(Trainer):
                     self.training_buffer[agent_id]['advantages'].get_batch()
                     + self.training_buffer[agent_id]['value_estimates'].get_batch())
 
-                self.training_buffer.append_update_buffer(agent_id, batch_size=None,
-                                                          training_length=self.policy.sequence_length)
+                self.training_buffer.append_update_buffer(
+                    agent_id, batch_size=None,
+                    training_length=self.policy.sequence_length)
 
                 self.training_buffer[agent_id].reset_agent()
                 
@@ -402,7 +424,9 @@ class PPOTrainer(Trainer):
     def is_ready_update(self):
         """
         Returns whether or not the trainer has enough elements to run update model
-        :return: A boolean corresponding to whether or not update_model() can be run
+        
+        :return: 
+            A boolean corresponding to whether or not update_model() can be run
         """
         size_of_buffer = len(self.training_buffer.update_buffer['actions'])
         return size_of_buffer > max(int(self.trainer_parameters['buffer_size'] / self.policy.sequence_length), 1)
@@ -449,10 +473,15 @@ def discount_rewards(r,
                      value_next=0.0):
     """
     Computes discounted sum of future rewards for use in updating value estimate.
-    :param r: List of rewards.
-    :param gamma: Discount factor.
-    :param value_next: T+1 value estimate for returns calculation.
-    :return: discounted sum of future rewards as list.
+    
+    :param r: 
+        List of rewards.
+    :param gamma: 
+        Discount factor.
+    :param value_next: 
+        T+1 value estimate for returns calculation.
+    :return: 
+        discounted sum of future rewards as list.
     """
     discounted_r = np.zeros_like(r)
     running_add = value_next
@@ -469,12 +498,19 @@ def get_gae(rewards,
             lambd=0.95):
     """
     Computes generalized advantage estimate for use in updating policy.
-    :param rewards: list of rewards for time-steps t to T.
-    :param value_next: Value estimate for time-step T+1.
-    :param value_estimates: list of value estimates for time-steps t to T.
-    :param gamma: Discount factor.
-    :param lambd: GAE weighing factor.
-    :return: list of advantage estimates for time-steps t to T.
+
+    :param rewards: 
+        list of rewards for time-steps t to T.
+    :param value_next: 
+        Value estimate for time-step T+1.
+    :param value_estimates: 
+        list of value estimates for time-steps t to T.
+    :param gamma: 
+        Discount factor.
+    :param lambd: 
+        GAE weighing factor.
+    :return: 
+        list of advantage estimates for time-steps t to T.
     """
     value_estimates = np.asarray(value_estimates.tolist() + [value_next])
     delta_t = rewards + gamma * value_estimates[1:] - value_estimates[:-1]

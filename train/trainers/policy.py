@@ -39,17 +39,17 @@ class Policy(object):
         :param brain: The corresponding Brain for this policy.
         :param trainer_parameters: The trainer parameters.
         """
-        self.m_size = None
-        self.model = None
-        self.inference_dict = {}
-        self.update_dict = {}
-        self.sequence_length = 1
-        self.seed = seed
-        self.brain = brain
-        self.use_recurrent = trainer_parameters["use_recurrent"]
-        self.use_continuous_act = (brain.vector_action_space_type == "continuous")
-        self.model_path = trainer_parameters["model_path"]
-        self.keep_checkpoints = trainer_parameters.get("keep_checkpoints", 5)
+        self.m_size             = None
+        self.model              = None
+        self.inference_dict     = {}
+        self.update_dict        = {}
+        self.sequence_length    = 1
+        self.seed               = seed
+        self.brain              = brain
+        self.use_recurrent      = trainer_parameters["use_recurrent"]
+        self.model_path         = trainer_parameters["model_path"]
+        self.keep_checkpoints   = trainer_parameters.get("keep_checkpoints", 5)
+        
         self.graph = tf.Graph()
         
         config = tf.ConfigProto()
@@ -122,8 +122,7 @@ class Policy(object):
             feed_dict[self.model.visual_in[i]] = brain_info.visual_observations[i]
         if self.use_vec_obs:
             feed_dict[self.model.vector_in] = brain_info.vector_observations
-        if not self.use_continuous_act:
-            feed_dict[self.model.action_masks] = brain_info.action_masks
+        feed_dict[self.model.action_masks] = brain_info.action_masks
         return feed_dict
 
     def make_empty_memory(self, num_agents):
