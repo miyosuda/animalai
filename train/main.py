@@ -16,8 +16,8 @@ worker_id        = random.randint(1, 100)
 seed             = 10
 base_port        = 5005
 sub_id           = 1
-run_id           = 'run_001'
-save_freq        = 5000
+run_id           = 'run_003'
+save_freq        = 20000
 curriculum_file  = None
 load_model       = False
 train_model      = True
@@ -31,7 +31,6 @@ model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
 
 n_arenas         = 8
-#arena_config_path= 'configs/exampleTraining.yaml'
 arena_config_path= 'configs/3-Obstacles.yaml'
 
 
