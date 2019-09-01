@@ -11,10 +11,10 @@ import sys
 
 
 # ML-agents parameters for training
-run_id           = 'run_004'
+run_id           = 'run_005'
 sub_id           = 1
-seed             = 10
-run_seed         = 1
+seed             = 1
+run_seed         = 2
 
 keep_checkpoints = 10000
 env_path         = '../env/AnimalAI'
