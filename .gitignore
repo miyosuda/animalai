@@ -4,4 +4,6 @@ train/models
 train/summaries
 train/UnitySDK.log
 
+train/base_data
+
 *.mov
