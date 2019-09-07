@@ -8,10 +8,11 @@ from animalai.envs.environment import UnityEnvironment
 from animalai.envs.arena_config import ArenaConfig
 
 env_path = '../env/AnimalAI'
+#env_path = '../env/AnimalAICustom'
 worker_id = random.randint(1, 100)
 
 seed = 10
-docker_target_name = None
+docker_target_name = True
 resolution = 84
 
 def main(args):
@@ -46,4 +47,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     main(args)
-
