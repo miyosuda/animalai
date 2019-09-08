@@ -1,4 +1,5 @@
-FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu16.04
+#FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu16.04
+FROM nvidia/cudagl:10.0-runtime-ubuntu16.04
 
 RUN apt-get clean && apt-get update && apt-get install -y locales
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \

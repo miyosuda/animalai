@@ -1,4 +1,4 @@
-version: '2'
+version: '2.3'
 
 services:
   animalai_lab:
@@ -9,7 +9,7 @@ services:
     ports:
     - "6006:6006"
     - "8888:8888"
-    #runtime: nvidia
+    runtime: nvidia
     volumes:
     - .:/aaio
     shm_size: 16G
