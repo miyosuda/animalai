@@ -329,7 +329,7 @@ def main():
     parser.add_argument("--custom_env", type=strtobool, default="false")
     args = parser.parse_args()
     
-    model_path          = './models/run_001/Learner'    
+    model_path          = './models/run_005/Learner'
     arena_config_path   = './configs/3-Obstacles.yaml'
 
     if args.custom_env:

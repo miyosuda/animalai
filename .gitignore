@@ -5,5 +5,6 @@ train/summaries
 train/UnitySDK.log
 
 train/base_data
+*.ipynb_checkpoints
 
 *.mov

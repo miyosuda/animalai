@@ -14,6 +14,8 @@ from animalai.envs.brain import BrainParameters
 
 from trainers.ppo.policy import PPOPolicy
 
+BASE_DATA_DIR = "base_data"
+
 
 class Agent(object):
     def __init__(self,
@@ -102,10 +104,16 @@ def collect(env, agent, step_size):
 
     file_size_in_dir = 1000
 
-    if not os.path.exists("base_data"):
-        os.mkdir("base_data")
+    if not os.path.exists(BASE_DATA_DIR):
+        os.mkdir(BASE_DATA_DIR)
 
-    start_time = time.time()        
+    start_time = time.time()
+
+    actions = []
+    positions = []
+    angles = []
+    rewards = []
+    dones = []
 
     for i in range(step_size):
         if i % file_size_in_dir == 0:
@@ -114,28 +122,37 @@ def collect(env, agent, step_size):
                 os.mkdir(dir_path)
 
         if obs == None:
+            # 初回のstate生成
             obs, reward, done, info = env.step([0, 0])
 
-        actions = []
-        positions = []
-        angles = []
-        rewards = []
-        dones = []
-        
-        action, _, _, _, pos_angle = agent.step(obs, reward, done, info)
+        # 実際のstateやangle, positionが入っているのはinfo
+
+        last_state = obs[0] # dtype=float64
+
+        # obsの状態に対してpolicyがactionを決定
+        action, _, _, _, last_pos_angle = agent.step(obs, reward, done, info)
+        # last_pos_angleはaction発行前のposとangle
+        # (1,2)
+
+        # Envに対してactionを発行し発行して結果を得る
         obs, reward, done, info = env.step(action)
 
-        state = obs[0] # dtype=float64
-        save_state(state, dir_path, i)
+        # (1,2) -> (2,)
+        action = np.squeeze(action)
 
-        pos   = pos_angle[0]
-        angle = pos_angle[1] / 360.0 * (2.0 * np.pi)
+        # action発行前のstate
+        save_state(last_state, dir_path, i)
 
-        actions.append(action)
-        positions.append(pos)
-        angles.append(angle)
-        rewards.append(reward)
-        dones.append(done)
+        last_pos   = last_pos_angle[0]
+        last_angle = last_pos_angle[1] / 360.0 * (2.0 * np.pi)
+        
+        actions.append(action)     # last_stateの状態において発行したAction
+        positions.append(last_pos) # Action発行前のpos
+        angles.append(last_angle)  # Action発行前のpos
+        rewards.append(reward)     # Actionを発行して得たreward
+        dones.append(done)         # Actionを発行してterminateしたかどうか
+
+        # 保存内容は通常の強化学習での (S_t,A_t,R_t+1,Term_t+1)の対
         
         if done:
             obs = None
@@ -145,7 +162,7 @@ def collect(env, agent, step_size):
             elapsed_time = time.time() - start_time
             print("fps={}".format(i / elapsed_time))
 
-    np.savez_compressed("base_data/infos",
+    np.savez_compressed("{}/infos".format(BASE_DATA_DIR),
                         actions=actions,
                         positions=positions,
                         angles=angles,
@@ -155,7 +172,7 @@ def collect(env, agent, step_size):
     print("collecting finished")
 
 
-def generate(base_data_dir, frame_size):
+def generate(frame_size):
     pass
 
 
@@ -165,13 +182,13 @@ def main():
     parser.add_argument("--step_size",
                         help="Training step size",
                         type=int,
-                        default=100)
+                        default=30000)
     args = parser.parse_args()
 
     step_size = args.step_size
     
     model_path          = './models/run_005/Learner'
-    arena_config_path   = './configs/3-Obstacles.yaml'
+    arena_config_path   = './configs/3-Obstacles-short.yaml'
     
     trainer_config_path = './configs/trainer_config.yaml'
     env_path            = '../env/AnimalAICustom'
@@ -186,7 +203,7 @@ def main():
 
     collect(env, agent, step_size)
     
-    generate("base_data", step_size)
+    generate(step_size)
 
 
 if __name__ == '__main__':
