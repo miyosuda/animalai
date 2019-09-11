@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import unittest
-import imageio # TODO: gen側と揃えてcv2にする
+import cv2
 
 DATA_DIR = "data"
 DEBUG_SAVE_IMAGE = True
@@ -29,12 +29,12 @@ class GenDatasetTest(unittest.TestCase):
         self.assertEqual(data_states.shape,     (1400, 20, 84, 84, 3))
         
         if DEBUG_SAVE_IMAGE:
-            seq_id = 0
+            seq_id = 10
         
-            for i in range(10):
+            for i in range(20):
                 state = data_states[seq_id,i]
-                # TODO: gen側と揃えてcv2にする
-                imageio.imwrite("state_{0:02}_{1:02}.png".format(seq_id, i), state)
+                state = cv2.cvtColor(state, cv2.COLOR_RGB2BGR)
+                cv2.imwrite("state_{0:02}_{1:02}.png".format(seq_id, i), state)
 
 if __name__ == '__main__':
     unittest.main()
