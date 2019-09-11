@@ -16,6 +16,7 @@ from trainers.ppo.policy import PPOPolicy
 
 BASE_DATA_DIR = "base_data"
 DATA_DIR = "data"
+FILE_SIZE_IN_DIR = 1000
 
 
 class Agent(object):
@@ -97,13 +98,19 @@ def save_state(state, dir_path, i):
     file_name = "{}/image{}.png".format(dir_path, i)
     state = (state*255.0).astype(np.uint8)
     image = cv2.cvtColor(state, cv2.COLOR_RGB2BGR)
-    cv2.imwrite(file_name, image)    
+    cv2.imwrite(file_name, image)
+
+    
+def load_state(index):
+    dir_path = "base_data/dir{}".format(index // FILE_SIZE_IN_DIR)
+    file_name = "{}/image{}.png".format(dir_path, index)
+    image = cv2.imread(file_name)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    return image
 
 
 def collect(env, agent, step_size):
     obs = None
-
-    file_size_in_dir = 1000
 
     if not os.path.exists(BASE_DATA_DIR):
         os.mkdir(BASE_DATA_DIR)
@@ -117,8 +124,8 @@ def collect(env, agent, step_size):
     dones = []
 
     for i in range(step_size):
-        if i % file_size_in_dir == 0:
-            dir_path = "base_data/dir{}".format(i // file_size_in_dir)
+        if i % FILE_SIZE_IN_DIR == 0:
+            dir_path = "base_data/dir{}".format(i // FILE_SIZE_IN_DIR)
             if not os.path.exists(dir_path):
                 os.mkdir(dir_path)
 
@@ -211,6 +218,7 @@ def generate(frame_size):
 
     extracted_seq_size = len(seq_start_indices)
 
+    extracted_states    = np.empty((extracted_seq_size, seq_length, 84, 84, 3), dtype=np.uint8)
     extracted_actions   = np.empty((extracted_seq_size, seq_length, 2), dtype=np.int32)
     extracted_positions = np.empty((extracted_seq_size, seq_length, 3), dtype=np.float32)
     extracted_angles    = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
@@ -220,28 +228,34 @@ def generate(frame_size):
         for i in range(seq_length):
             index = seq_start_index + i
             
-            # TODO: 画像のロード
+            state = load_state(index)
             
             action   = data_actions[index]
             position = data_positions[index]
             angle    = data_angles[index]
             reward   = data_rewards[index]
-            
+
+            extracted_states[seq_id, i]       = state
             extracted_actions[seq_id, i, :]   = action
             extracted_positions[seq_id, i, :] = position
             extracted_angles[seq_id, i, :]    = angle
             extracted_rewards[seq_id, i, :]   = reward
 
+        if seq_id % 100 == 0:
+            print("process seq={}".format(seq_id))
+
     if not os.path.exists(DATA_DIR):
         os.mkdir(DATA_DIR)
+
+    np.savez_compressed("{}/states".format(DATA_DIR),
+                        states=extracted_states)
 
     np.savez_compressed("{}/infos".format(DATA_DIR),
                         actions=extracted_actions,
                         positions=extracted_positions,
                         angles=extracted_angles,
                         rewards=extracted_rewards)
-    
-    
+        
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
