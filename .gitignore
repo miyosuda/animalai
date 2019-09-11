@@ -1,10 +1,11 @@
 __pycache__
 env/*
+
+*.ipynb_checkpoints
+*.mov
+
 train/models
 train/summaries
 train/UnitySDK.log
-
 train/base_data
-*.ipynb_checkpoints
-
-*.mov
+train/data

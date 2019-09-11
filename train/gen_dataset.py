@@ -15,6 +15,7 @@ from animalai.envs.brain import BrainParameters
 from trainers.ppo.policy import PPOPolicy
 
 BASE_DATA_DIR = "base_data"
+DATA_DIR = "data"
 
 
 class Agent(object):
@@ -162,7 +163,7 @@ def collect(env, agent, step_size):
             elapsed_time = time.time() - start_time
             print("fps={}".format(i / elapsed_time))
 
-    np.savez_compressed("{}/infos".format(BASE_DATA_DIR),
+    np.savez_compressed("{}/base_infos".format(BASE_DATA_DIR),
                         actions=actions,
                         positions=positions,
                         angles=angles,
@@ -173,9 +174,74 @@ def collect(env, agent, step_size):
 
 
 def generate(frame_size):
-    pass
+    data_path = "{}/base_infos.npz".format(BASE_DATA_DIR)
+    data_all = np.load(data_path)
 
+    data_actions = data_all["actions"]     # (n, 2)
+    data_positions = data_all["positions"] # (n, 3)
+    data_angles = data_all["angles"]       # (n,)
+    data_rewards = data_all["rewards"]     # (n,)
+    data_dones = data_all["dones"]         # (n,)
 
+    frame_size = len(data_dones)
+
+    seq_start_index = 0
+    # 1シーケンスの長さ
+    seq_length = 20
+
+    seq_start_indices = []
+
+    while(seq_start_index < frame_size):
+        for i in range(seq_length):
+            index = seq_start_index + i
+
+            if i == seq_length-1:
+                # 最後までシーケンスを流せた
+                seq_start_indices.append(seq_start_index)
+                seq_start_index = index+1
+                break
+            elif data_dones[index] == True:
+                # このseqは無効なので捨てる
+                seq_start_index = index+1
+                break
+            elif index >= frame_size-1:
+                # 最後まで来たので無効として外側のループを抜ける
+                seq_start_index = index + 1
+                break
+
+    extracted_seq_size = len(seq_start_indices)
+
+    extracted_actions   = np.empty((extracted_seq_size, seq_length, 2), dtype=np.int32)
+    extracted_positions = np.empty((extracted_seq_size, seq_length, 3), dtype=np.float32)
+    extracted_angles    = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
+    extracted_rewards   = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
+
+    for seq_id, seq_start_index in enumerate(seq_start_indices):
+        for i in range(seq_length):
+            index = seq_start_index + i
+            
+            # TODO: 画像のロード
+            
+            action   = data_actions[index]
+            position = data_positions[index]
+            angle    = data_angles[index]
+            reward   = data_rewards[index]
+            
+            extracted_actions[seq_id, i, :]   = action
+            extracted_positions[seq_id, i, :] = position
+            extracted_angles[seq_id, i, :]    = angle
+            extracted_rewards[seq_id, i, :]   = reward
+
+    if not os.path.exists(DATA_DIR):
+        os.mkdir(DATA_DIR)
+
+    np.savez_compressed("{}/infos".format(DATA_DIR),
+                        actions=extracted_actions,
+                        positions=extracted_positions,
+                        angles=extracted_angles,
+                        rewards=extracted_rewards)
+    
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
@@ -201,7 +267,7 @@ def main():
 
     env.reset(arenas_configurations=arena_config_in)
 
-    collect(env, agent, step_size)
+    #..collect(env, agent, step_size)
     
     generate(step_size)
 
