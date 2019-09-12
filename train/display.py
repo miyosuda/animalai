@@ -78,6 +78,9 @@ class Display(object):
         
         self.value_history = ValueHistory()
         self.episode_reward = 0
+        self.last_episode_reward = 0
+        self.total_episode_reward = 0
+        self.num_episode = 0
 
         # 初回の初期化
         self.obs = None
@@ -107,6 +110,13 @@ class Display(object):
         text_rect.top = top
         self.surface.blit(text, text_rect)
 
+    def draw_right_text(self, str, right, top):
+        text = self.font.render(str, True, WHITE, BLACK)
+        text_rect = text.get_rect()
+        text_rect.right = right
+        text_rect.top = top
+        self.surface.blit(text, text_rect)
+
     def show_policy(self, pi, x=10, y=150, label="PI"):
         """
         Show action probability.
@@ -127,6 +137,8 @@ class Display(object):
         image = pygame.image.frombuffer(data, (84, 84), 'RGB')
         self.surface.blit(image, (8, 8))
         self.draw_center_text("input", 50, 100)
+        image8 = pygame.transform.scale(image, (512, 512))
+        self.surface.blit(image8, (900-512-8, 8))
 
     def show_value(self):
         if self.value_history.is_empty:
@@ -203,7 +215,15 @@ class Display(object):
         pygame.draw.line(self.surface, GRAY, (left, bottom), (right, bottom), 1)
 
     def show_reward(self):
-        self.draw_text("REWARD: {}".format(self.episode_reward), 310, 10)
+        self.draw_right_text("Current Reward: ", 900-512-8-8-50, 8)
+        self.draw_right_text("{:.5f}".format(self.episode_reward), 900-512-8-8, 8)
+        self.draw_right_text("Last Reward: ", 900-512-8-8-50, 8+16)
+        self.draw_right_text("{:.5f}".format(self.last_episode_reward), 900-512-8-8, 8+16)
+        if self.num_episode > 0:
+            self.draw_right_text("Average Reward: ", 900-512-8-8-50, 8+16+16)
+            self.draw_right_text("{:.5f}".format(self.total_episode_reward / self.num_episode), 900-512-8-8, 8+16+16)
+        self.draw_right_text("Number of Episodes: ", 900-512-8-8-50, 8+16+16+16)
+        self.draw_right_text("{}".format(self.num_episode), 900-512-8-8, 8+16+16+16)
 
     def get_frame(self):
         data = self.surface.get_buffer().raw
@@ -235,7 +255,11 @@ class Display(object):
         pi1 = self.softmax(log_probs[0,3:])  # 左右方向のAction
 
         if self.done:
+            self.last_episode_reward = self.episode_reward
+            self.total_episode_reward += self.episode_reward
+            self.num_episode += 1
             self.obs = None
+            self.episode_reward = 0.0
         
         self.show_image(state)
         self.show_policy(pi0, 10, 150, "PI (F<->B)")
@@ -336,13 +360,14 @@ def main():
         # Using custom environment for pos/angle visualization
         env_path = '../env/AnimalAICustom'
     else:
-        #env_path = '../env/AnimalAI'
-        env_path = '../env/AnimalAIFast'
+        #env_path = '../../env/AnimalAI'
+        #env_path = '../env/AnimalAIFast'
+        env_path = '../../../AnimalAI-Olympics-inf-mnky/env/AnimalAI'
     
     trainer_config_path = './configs/trainer_config.yaml'
     
     recording = args.recording
-    display_size = (440, 400)
+    display_size = (900, 528)
 
     agent = init_agent(trainer_config_path, model_path)
     env = init_env(env_path, args.seed)
