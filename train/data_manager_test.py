@@ -29,7 +29,6 @@ class DataManagerTest(unittest.TestCase):
         self.assertEqual(rewards.shape, (10, seq_length, 1))
         self.assertEqual(rewards.dtype, "float32")
 
-
         if DEBUG_SAVE_STATE:
             for j in range(2):
                 for i in range(seq_length):
