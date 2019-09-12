@@ -181,7 +181,7 @@ class Display(object):
 
     def show_agent_pos_angle(self, pos_angle):
         """ Draw agent position and angle (for custom environment) """
-        top = 8
+        top = 300
         left = 150
         width = 100
         height = 100
@@ -361,8 +361,8 @@ def main():
         env_path = '../env/AnimalAICustom'
     else:
         #env_path = '../../env/AnimalAI'
-        #env_path = '../env/AnimalAIFast'
-        env_path = '../../../AnimalAI-Olympics-inf-mnky/env/AnimalAI'
+        env_path = '../env/AnimalAIFast'
+        #env_path = '../../../AnimalAI-Olympics-inf-mnky/env/AnimalAI'
     
     trainer_config_path = './configs/trainer_config.yaml'
     
