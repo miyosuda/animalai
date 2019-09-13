@@ -9,3 +9,5 @@ train/summaries
 train/UnitySDK.log
 train/base_data
 train/data
+
+train/saved*
