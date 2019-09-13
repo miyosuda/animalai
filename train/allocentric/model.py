@@ -26,6 +26,7 @@ class AllocentricModel(object):
                                      padding="same",
                                     activation=tf.nn.relu,
                                      name="conv1")
+            
             conv2 = tf.layers.conv2d(conv1,
                                      filters=32,
                                      kernel_size=[4, 4],
@@ -33,10 +34,20 @@ class AllocentricModel(object):
                                      padding="same",
                                      activation=tf.nn.relu,
                                      name="conv2")
-                
-            conv2_flat = tf.layers.flatten(conv2)
-                
-            fc1 = tf.layers.dense(conv2_flat,
+            # (-1, 21, 21, 32)
+            conv3 = tf.layers.conv2d(conv2,
+                                     filters=32,
+                                     kernel_size=[4, 4],
+                                     strides=(2, 2),
+                                     padding="same",
+                                     activation=tf.nn.relu,
+                                     name="conv3")
+            # (-1, 11, 11, 32)
+            
+            conv3_flat = tf.layers.flatten(conv3)
+            # (-1, 3872)
+            
+            fc1 = tf.layers.dense(conv3_flat,
                                   256,
                                   activation=tf.nn.relu,
                                   name="fc1")
@@ -46,13 +57,6 @@ class AllocentricModel(object):
                 
             self.cell = tf.contrib.rnn.BasicLSTMCell(256, state_is_tuple=True)
 
-            """
-            self.initial_lstm_state0 = tf.placeholder(tf.float32, [batch_size, 256])
-            self.initial_lstm_state1 = tf.placeholder(tf.float32, [batch_size, 256])
-            self.initial_lstm_state = tf.contrib.rnn.LSTMStateTuple(
-            self.initial_lstm_state0,
-            self.initial_lstm_state1)
-            """
             self.initial_lstm_state = self.cell.zero_state(batch_size=batch_size,
                                                            dtype=tf.float32)
                 
