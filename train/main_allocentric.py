@@ -49,7 +49,7 @@ def train(sess, trainer, saver, summary_writer, start_step):
            sess, summary_writer, batch_size=flags.batch_size, step=i)
 
         if i % flags.save_interval == flags.save_interval - 1:
-            # Saev
+            # Save
             save_checkponts(sess, saver, i)
 
         if i % flags.test_interval == flags.test_interval - 1:

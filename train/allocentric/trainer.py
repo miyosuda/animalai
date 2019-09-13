@@ -12,7 +12,6 @@ class Trainer(object):
             self.model.loss)
 
     def train(self, sess, summary_writer, batch_size, step):
-        #seq_length = self.data_manager.seq_length
         batch_data = self.data_manager.get_next_train_batch(batch_size)
         states, actions, velocities, positions, angles, rewards = batch_data
         
@@ -48,8 +47,10 @@ class Trainer(object):
         test_data_size = self.data_manager.test_data_size
         all_losses = []
 
+        # 端数が出た時の対処
+        test_data_size = (test_data_size // batch_size) * batch_size
+
         for i in range(0, test_data_size, batch_size):
-            # TODO: 端数が出た時の対処
             batch_data = self.data_manager.get_test_batch(i, batch_size)
             states, actions, velocities, positions, angles, rewards = batch_data
 

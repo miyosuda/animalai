@@ -11,3 +11,4 @@ train/base_data
 train/data
 
 train/saved*
+train/run.sh

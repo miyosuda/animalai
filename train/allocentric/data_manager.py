@@ -29,7 +29,7 @@ class DataManager(object):
         # Get data dimensions
         total_data_size, self.seq_length, self.w, self.h, self.ch = data_states.shape
         self.train_data_size = 1200
-        self.test_data_size  = 200
+        self.test_data_size  = total_data_size - self.train_data_size
 
         # TODO: split_train_test_data()を利用する
         
