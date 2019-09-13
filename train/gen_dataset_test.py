@@ -4,7 +4,8 @@ import unittest
 import cv2
 
 DATA_DIR = "data"
-DEBUG_SAVE_IMAGE = True
+DEBUG_SAVE_IMAGE = False
+
 
 class GenDatasetTest(unittest.TestCase):
     def test_generate(self):
@@ -14,19 +15,29 @@ class GenDatasetTest(unittest.TestCase):
         data_state_path = "{}/states.npz".format(DATA_DIR)
         data_state_all = np.load(data_state_path)
         
-        data_actions   = data_info_all["actions"]
-        data_positions = data_info_all["positions"]
-        data_angles    = data_info_all["angles"]
-        data_rewards   = data_info_all["rewards"]
+        data_actions    = data_info_all["actions"]
+        data_velocities = data_info_all["velocities"]
+        data_positions  = data_info_all["positions"]
+        data_angles     = data_info_all["angles"]
+        data_rewards    = data_info_all["rewards"]
 
         data_states    = data_state_all["states"]
+
+        data_size = 1400
         
-        self.assertEqual(data_actions.shape,    (1400, 20, 2))
-        self.assertEqual(data_positions.shape,  (1400, 20, 3))
-        self.assertEqual(data_angles.shape,     (1400, 20, 1))
-        self.assertEqual(data_rewards.shape,    (1400, 20, 1))
-        
-        self.assertEqual(data_states.shape,     (1400, 20, 84, 84, 3))
+        self.assertEqual(data_actions.shape,    (data_size, 20, 2))
+        self.assertEqual(data_velocities.shape, (data_size, 20, 3))
+        self.assertEqual(data_positions.shape,  (data_size, 20, 3))
+        self.assertEqual(data_angles.shape,     (data_size, 20, 1))
+        self.assertEqual(data_rewards.shape,    (data_size, 20, 1))
+        self.assertEqual(data_states.shape,     (data_size, 20, 84, 84, 3))
+
+        self.assertEqual(data_actions.dtype,    np.int32)
+        self.assertEqual(data_velocities.dtype, np.float32)
+        self.assertEqual(data_positions.dtype,  np.float32)
+        self.assertEqual(data_angles.dtype,     np.float32)
+        self.assertEqual(data_rewards.dtype,    np.float32)
+        self.assertEqual(data_states.dtype,     np.uint8)
         
         if DEBUG_SAVE_IMAGE:
             seq_id = 10
@@ -38,4 +49,3 @@ class GenDatasetTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -55,25 +55,28 @@ class Agent(object):
     def fix_brain_info(self, brain_info):
         if brain_info.vector_observations.shape[1] > 3:
             # カスタム環境用にvector_observationsをいじったものだった場合
+            velocity = brain_info.vector_observations[:,:3]
+            
             extended_infos = brain_info.vector_observations[:,3:]
             # 元の3次元だけのvector_observationsに戻す
             brain_info.vector_observations = brain_info.vector_observations[:,:3]
             agent_pos   = extended_infos[:,:3]
             agent_angle = extended_infos[:,3]
-            return (agent_pos[0], agent_angle[0])
+            return (velocity[0], agent_pos[0], agent_angle[0])
         else:
+            print("There was no extended brain info")
             return None
 
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
-        pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
+        velocity_pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
         log_probs = out['log_probs']
         value     = out['value']
         entropy   = out['entropy']
-        return action, log_probs, value, entropy, pos_angle
+        return action, log_probs, value, entropy, velocity_pos_angle
 
     
 def init_agent(trainer_config_path, model_path):
@@ -100,7 +103,7 @@ def save_state(state, dir_path, i):
     image = cv2.cvtColor(state, cv2.COLOR_RGB2BGR)
     cv2.imwrite(file_name, image)
 
-    
+
 def load_state(index):
     dir_path = "base_data/dir{}".format(index // FILE_SIZE_IN_DIR)
     file_name = "{}/image{}.png".format(dir_path, index)
@@ -117,6 +120,7 @@ def collect(env, agent, step_size):
 
     start_time = time.time()
 
+    velocities = []
     actions = []
     positions = []
     angles = []
@@ -131,37 +135,42 @@ def collect(env, agent, step_size):
 
         if obs == None:
             # 初回のstate生成
-            obs, reward, done, info = env.step([0, 0])
+            last_action = np.array([0,0], dtype=np.int32)
+            obs, reward, done, info = env.step(last_action)
 
         # 実際のstateやangle, positionが入っているのはinfo
 
         last_state = obs[0] # dtype=float64
 
         # obsの状態に対してpolicyがactionを決定
-        action, _, _, _, last_pos_angle = agent.step(obs, reward, done, info)
-        # last_pos_angleはaction発行前のposとangle
-        # (1,2)
+        action, _, _, _, last_velocity_pos_angle = agent.step(obs, reward, done, info)
+        # action=(1,2)
+        # last_velocity_pos_angleはaction発行前のvelocity, pos, angle
+        # actionは、last_stateにおいて発行したAction
 
         # Envに対してactionを発行し発行して結果を得る
         obs, reward, done, info = env.step(action)
 
-        # (1,2) -> (2,)
-        action = np.squeeze(action)
-
         # action発行前のstate
         save_state(last_state, dir_path, i)
 
-        last_pos   = last_pos_angle[0]
-        last_angle = last_pos_angle[1] / 360.0 * (2.0 * np.pi)
+        last_velocity = last_velocity_pos_angle[0]
+        last_pos      = last_velocity_pos_angle[1]
+        last_angle    = last_velocity_pos_angle[2] / 360.0 * (2.0 * np.pi)
         
-        actions.append(action)     # last_stateの状態において発行したAction
-        positions.append(last_pos) # Action発行前のpos
-        angles.append(last_angle)  # Action発行前のpos
-        rewards.append(reward)     # Actionを発行して得たreward
-        dones.append(done)         # Actionを発行してterminateしたかどうか
+        actions.append(np.squeeze(last_action))
+        # last_stateの状態になる前に発行したAction (inputになる)
+        # (このactionを発行してlast_stateに遷移した)
+        # (1,2) -> (2,)
+        velocities.append(last_velocity) # Action発酵前のlocal velocity (inputになる)
+        positions.append(last_pos)       # Action発行前のpos (output targetになる)
+        angles.append(last_angle)        # Action発行前のangle (output targetになる)
+        rewards.append(reward)           # Actionを発行して得たreward
+        dones.append(done)               # Actionを発行してterminateしたかどうか
+
+        last_action = action
 
         # 保存内容は通常の強化学習での (S_t,A_t,R_t+1,Term_t+1)の対
-        
         if done:
             obs = None
 
@@ -172,6 +181,7 @@ def collect(env, agent, step_size):
 
     np.savez_compressed("{}/base_infos".format(BASE_DATA_DIR),
                         actions=actions,
+                        velocities=velocities,
                         positions=positions,
                         angles=angles,
                         rewards=rewards,
@@ -183,12 +193,13 @@ def collect(env, agent, step_size):
 def generate(frame_size):
     data_path = "{}/base_infos.npz".format(BASE_DATA_DIR)
     data_all = np.load(data_path)
-
-    data_actions = data_all["actions"]     # (n, 2)
-    data_positions = data_all["positions"] # (n, 3)
-    data_angles = data_all["angles"]       # (n,)
-    data_rewards = data_all["rewards"]     # (n,)
-    data_dones = data_all["dones"]         # (n,)
+    
+    data_actions = data_all["actions"]       # (n, 2)
+    data_velocities = data_all["velocities"] # (n, 3)
+    data_positions = data_all["positions"]   # (n, 3)
+    data_angles = data_all["angles"]         # (n,)
+    data_rewards = data_all["rewards"]       # (n,)
+    data_dones = data_all["dones"]           # (n,)
 
     frame_size = len(data_dones)
 
@@ -218,11 +229,12 @@ def generate(frame_size):
 
     extracted_seq_size = len(seq_start_indices)
 
-    extracted_states    = np.empty((extracted_seq_size, seq_length, 84, 84, 3), dtype=np.uint8)
-    extracted_actions   = np.empty((extracted_seq_size, seq_length, 2), dtype=np.int32)
-    extracted_positions = np.empty((extracted_seq_size, seq_length, 3), dtype=np.float32)
-    extracted_angles    = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
-    extracted_rewards   = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
+    extracted_states     = np.empty((extracted_seq_size, seq_length, 84, 84, 3), dtype=np.uint8)
+    extracted_actions    = np.empty((extracted_seq_size, seq_length, 2), dtype=np.int32)
+    extracted_velocities = np.empty((extracted_seq_size, seq_length, 3), dtype=np.float32)
+    extracted_positions  = np.empty((extracted_seq_size, seq_length, 3), dtype=np.float32)
+    extracted_angles     = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
+    extracted_rewards    = np.empty((extracted_seq_size, seq_length, 1), dtype=np.float32)
 
     for seq_id, seq_start_index in enumerate(seq_start_indices):
         for i in range(seq_length):
@@ -231,15 +243,17 @@ def generate(frame_size):
             state = load_state(index)
             
             action   = data_actions[index]
+            velocity = data_velocities[index]
             position = data_positions[index]
             angle    = data_angles[index]
             reward   = data_rewards[index]
 
-            extracted_states[seq_id, i]       = state
-            extracted_actions[seq_id, i, :]   = action
-            extracted_positions[seq_id, i, :] = position
-            extracted_angles[seq_id, i, :]    = angle
-            extracted_rewards[seq_id, i, :]   = reward
+            extracted_states[seq_id, i]        = state
+            extracted_actions[seq_id, i, :]    = action
+            extracted_velocities[seq_id, i, :] = velocity
+            extracted_positions[seq_id, i, :]  = position
+            extracted_angles[seq_id, i, :]     = angle
+            extracted_rewards[seq_id, i, :]    = reward
 
         if seq_id % 100 == 0:
             print("process seq={}".format(seq_id))
@@ -252,6 +266,7 @@ def generate(frame_size):
 
     np.savez_compressed("{}/infos".format(DATA_DIR),
                         actions=extracted_actions,
+                        velocities=extracted_velocities,
                         positions=extracted_positions,
                         angles=extracted_angles,
                         rewards=extracted_rewards)
@@ -281,7 +296,7 @@ def main():
 
     env.reset(arenas_configurations=arena_config_in)
 
-    #..collect(env, agent, step_size)
+    collect(env, agent, step_size)
     
     generate(step_size)
 
