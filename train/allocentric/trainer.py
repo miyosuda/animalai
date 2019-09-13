@@ -17,7 +17,7 @@ class Trainer(object):
         
         positions = 1.0 - (positions / 20.0) # -1.0~1.0
         cos_angles = np.cos(angles)
-        sin_angles = np.cos(angles)
+        sin_angles = np.sin(angles)
         converted_angles = np.concatenate([cos_angles, sin_angles], 2)
         # (batch_size, seq_length, 2)
         
@@ -56,7 +56,7 @@ class Trainer(object):
 
             positions = 1.0 - (positions / 20.0) # -1.0~1.0
             cos_angles = np.cos(angles)
-            sin_angles = np.cos(angles)
+            sin_angles = np.sin(angles)
             converted_angles = np.concatenate([cos_angles, sin_angles], 2)
             # (batch_size, seq_length, 2)
 

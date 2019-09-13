@@ -277,7 +277,7 @@ def main():
     parser.add_argument("--step_size",
                         help="Training step size",
                         type=int,
-                        default=30000)
+                        default=150000)
     args = parser.parse_args()
 
     step_size = args.step_size
