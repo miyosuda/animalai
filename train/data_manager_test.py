@@ -12,13 +12,16 @@ if DEBUG_SAVE_STATE:
 class DataManagerTest(unittest.TestCase):
     def sub_test_get_next_train_batch(self, data_manager, seq_length=20):
         batch_data = data_manager.get_next_train_batch(10)
-        (states, actions, positions, angles, rewards) = batch_data
+        (states, actions, velocities, positions, angles, rewards) = batch_data
 
         self.assertEqual(states.shape, (10, seq_length, 84, 84, 3))
         self.assertEqual(states.dtype, "float32")
 
         self.assertEqual(actions.shape, (10, seq_length, 2))
         self.assertEqual(actions.dtype, "int32")
+
+        self.assertEqual(velocities.shape, (10, seq_length, 3))
+        self.assertEqual(velocities.dtype, "float32")
 
         self.assertEqual(positions.shape, (10, seq_length, 3))
         self.assertEqual(positions.dtype, "float32")
@@ -37,13 +40,16 @@ class DataManagerTest(unittest.TestCase):
 
     def sub_test_get_test_batch(self, data_manager, seq_length=20):
         batch_data = data_manager.get_test_batch(0, 10)
-        (states, actions, positions, angles, rewards) = batch_data
+        (states, actions, velocities, positions, angles, rewards) = batch_data
 
         self.assertEqual(states.shape, (10, seq_length, 84, 84, 3))
         self.assertEqual(states.dtype, "float32")
 
         self.assertEqual(actions.shape, (10, seq_length, 2))
         self.assertEqual(actions.dtype, "int32")
+
+        self.assertEqual(velocities.shape, (10, seq_length, 3))
+        self.assertEqual(velocities.dtype, "float32")
 
         self.assertEqual(positions.shape, (10, seq_length, 3))
         self.assertEqual(positions.dtype, "float32")

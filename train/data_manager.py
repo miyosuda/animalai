@@ -19,11 +19,12 @@ class DataManager(object):
         data_info_path = "{}/infos.npz".format(DATA_DIR)
         data_info_all = np.load(data_info_path)
 
-        data_states    = data_state_all["states"]   # (1400, 20, 84, 84, 3) uint8
-        data_actions   = data_info_all["actions"]   # (1400, 20, 2) float32
-        data_positions = data_info_all["positions"] # (1400, 20, 3) float32
-        data_angles    = data_info_all["angles"]    # (1400, 20, 1) float32
-        data_rewards   = data_info_all["rewards"]   # (1400, 20, 1) int32
+        data_states     = data_state_all["states"]    # (1400, 20, 84, 84, 3) uint8
+        data_actions    = data_info_all["actions"]    # (1400, 20, 2) float32
+        data_velocities = data_info_all["velocities"] # (1400, 20, 3) float32
+        data_positions  = data_info_all["positions"]  # (1400, 20, 3) float32
+        data_angles     = data_info_all["angles"]     # (1400, 20, 1) float32
+        data_rewards    = data_info_all["rewards"]    # (1400, 20, 1) int32
 
         # Get data dimensions
         total_data_size, self.seq_length, self.w, self.h, self.ch = data_states.shape
@@ -38,7 +39,11 @@ class DataManager(object):
 
         # Actions
         self.train_actions    = data_actions[0:self.train_data_size]
-        self.test_actions     = data_actions[self.train_data_size:] 
+        self.test_actions     = data_actions[self.train_data_size:]
+
+        # Velocities.
+        self.train_velocities = data_velocities[0:self.train_data_size]
+        self.test_velocities  = data_velocities[self.train_data_size:]
 
         # Positions.
         self.train_positions  = data_positions[0:self.train_data_size]
@@ -64,25 +69,27 @@ class DataManager(object):
         selected_indices = self.train_indices[self.train_index_pos:
                                               self.train_index_pos+batch_size]
         raw_states = self.raw_train_states[selected_indices, :, :, :, :]
-        states    = self.convert_states(raw_states)
-        actions   = self.train_actions[selected_indices, :, :]
-        positions = self.train_positions[selected_indices, :, :]
-        angles    = self.train_angles[selected_indices, :, :]
-        rewards   = self.train_rewards[selected_indices, :, :]
+        states     = self.convert_states(raw_states)
+        actions    = self.train_actions[selected_indices, :, :]
+        velocities = self.train_velocities[selected_indices, :, :]
+        positions  = self.train_positions[selected_indices, :, :]
+        angles     = self.train_angles[selected_indices, :, :]
+        rewards    = self.train_rewards[selected_indices, :, :]
         
         self.train_index_pos += batch_size
-        return (states, actions, positions, angles, rewards)
+        return (states, actions, velocities, positions, angles, rewards)
 
     def get_test_batch(self, data_index, batch_size):
         indices = list(range(data_index, data_index + batch_size))
 
         raw_states = self.raw_test_states[indices, :, :, :, :]
-        states    = self.convert_states(raw_states)
-        actions   = self.test_actions[indices, :, :]
-        positions = self.test_positions[indices, :, :]
-        angles    = self.test_angles[indices, :, :]
-        rewards   = self.test_rewards[indices, :, :]
-        return (states, actions, positions, angles, rewards)
+        states     = self.convert_states(raw_states)
+        actions    = self.test_actions[indices, :, :]
+        velocities = self.test_velocities[indices, :, :]
+        positions  = self.test_positions[indices, :, :]
+        angles     = self.test_angles[indices, :, :]
+        rewards    = self.test_rewards[indices, :, :]
+        return (states, actions, velocities, positions, angles, rewards)
 
     def split_train_test_data(self, data, train_data_size):
         # Split data into train/test.
