@@ -2,6 +2,8 @@
 import tensorflow as tf
 import numpy as np
 
+import utils
+
 
 class Trainer(object):
     def __init__(self, data_manager, model, learning_rate):
@@ -15,7 +17,7 @@ class Trainer(object):
         batch_data = self.data_manager.get_next_train_batch(batch_size)
         states, actions, velocities, positions, angles, rewards = batch_data
         
-        positions = 1.0 - (positions / 20.0) # -1.0~1.0
+        positions = utils.normalize_position(positions) # -1.0~1.0
         cos_angles = np.cos(angles)
         sin_angles = np.sin(angles)
         converted_angles = np.concatenate([cos_angles, sin_angles], 2)
@@ -54,7 +56,7 @@ class Trainer(object):
             batch_data = self.data_manager.get_test_batch(i, batch_size)
             states, actions, velocities, positions, angles, rewards = batch_data
 
-            positions = 1.0 - (positions / 20.0) # -1.0~1.0
+            positions = utils.normalize_position(positions) # -1.0~1.0
             cos_angles = np.cos(angles)
             sin_angles = np.sin(angles)
             converted_angles = np.concatenate([cos_angles, sin_angles], 2)

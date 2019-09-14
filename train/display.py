@@ -179,7 +179,7 @@ class Display(object):
 
         self.draw_center_text("V", left + width / 2, bottom + 10)
 
-    def show_agent_pos_angle(self, pos_angle):
+    def show_agent_pos_angle(self, velocity_pos_angle):
         """ Draw agent position and angle (for custom environment) """
         top = 300
         left = 150
@@ -188,8 +188,8 @@ class Display(object):
         bottom = top + width
         right = left + height
 
-        pos = pos_angle[0]
-        angle = pos_angle[1] / 360.0 * (2.0 * np.pi)
+        pos = velocity_pos_angle[1]
+        angle = velocity_pos_angle[2] / 360.0 * (2.0 * np.pi)
         
         target_pos_0 = pos[0] + np.sin(angle) * 5
         target_pos_1 = pos[2] + np.cos(angle) * 5
@@ -240,10 +240,10 @@ class Display(object):
         if self.obs == None:
             self.obs, self.reward, self.done, self.info = self.env.step([0, 0])
             
-        action, log_probs, value, entropy, pos_angle = self.agent.step(self.obs,
-                                                                       self.reward,
-                                                                       self.done,
-                                                                       self.info)
+        action, log_probs, value, entropy, velocity_pos_angle = self.agent.step(self.obs,
+                                                                                self.reward,
+                                                                                self.done,
+                                                                                self.info)
         
         self.obs, self.reward, self.done, self.info = self.env.step(action)
         state = self.obs[0] # float64
@@ -267,8 +267,11 @@ class Display(object):
         self.show_value()
         self.show_reward()
 
-        if pos_angle is not None:
-            self.show_agent_pos_angle(pos_angle)
+        if velocity_pos_angle is not None:
+            print(velocity_pos_angle[0].shape)
+            print(velocity_pos_angle[1].shape)
+            print(velocity_pos_angle[2].shape)
+            self.show_agent_pos_angle(velocity_pos_angle)
 
 
 class Agent(object):
@@ -307,25 +310,29 @@ class Agent(object):
     def fix_brain_info(self, brain_info):
         if brain_info.vector_observations.shape[1] > 3:
             # カスタム環境用にvector_observationsをいじったものだった場合
+            # カスタム環境用にvector_observationsをいじったものだった場合
+            velocity = brain_info.vector_observations[:,:3]
+            
             extended_infos = brain_info.vector_observations[:,3:]
             # 元の3次元だけのvector_observationsに戻す
             brain_info.vector_observations = brain_info.vector_observations[:,:3]
             agent_pos   = extended_infos[:,:3]
             agent_angle = extended_infos[:,3]
-            return (agent_pos[0], agent_angle[0])
+            return (velocity[0], agent_pos[0], agent_angle[0])
         else:
             return None
 
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
-        pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
+        velocity_pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
+        # (3,) (3,) ()
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
         log_probs = out['log_probs']
         value     = out['value']
         entropy   = out['entropy']
-        return action, log_probs, value, entropy, pos_angle
+        return action, log_probs, value, entropy, velocity_pos_angle
 
 
 def init_agent(trainer_config_path, model_path):

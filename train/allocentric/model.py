@@ -85,6 +85,7 @@ class AllocentricModel(object):
                                           activation=tf.nn.tanh, # -1~1にする
                                           name="fc_out2")
             # (batch_size * unroll_step, 5)
+            self.lstm_state = lstm_state
                 
     def prepare_loss(self):
         with tf.variable_scope("loss") as scope:

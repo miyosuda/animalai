@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 import numpy as np
-import os
 
 from allocentric.data_manager import DataManager
 from allocentric.model import AllocentricModel
@@ -15,7 +14,7 @@ def check(sess, model, data_manager, batch_size):
     batch_data = data_manager.get_test_batch(0, batch_size)
     states, actions, velocities, positions, angles, rewards = batch_data
 
-    positions = 1.0 - (positions / 20.0) # -1.0~1.0
+    positions = utils.normalize_position(positions) # -1.0~1.0
     cos_angles = np.cos(angles)
     sin_angles = np.sin(angles)
     converted_angles = np.concatenate([cos_angles, sin_angles], 2)

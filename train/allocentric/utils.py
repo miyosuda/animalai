@@ -28,3 +28,17 @@ def save_checkponts(sess, saver, global_step, save_dir):
     checkpoint_dir = save_dir + "/checkpoints"
     saver.save(sess, checkpoint_dir + '/' + 'checkpoint', global_step=global_step)
     print("Checkpoint saved")
+
+
+def normalize_position(positions):
+    """ Normalize positions from 0~40 to -1~1) """
+    # TODO: 逆になっている直すこと
+    normalized_positions = 1.0 - (positions / 20.0) # -1.0~1.0
+    return normalized_positions
+
+
+def denormalie_position(normalized_positions):
+    """ Normalize positions from -1~1 to 0~40) """
+    # TODO: 逆になっているので直すこと
+    positions = -20.0 * (normalized_positions - 1.0)
+    return positions
