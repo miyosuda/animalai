@@ -65,7 +65,7 @@ class ValueHistory(object):
 
 
 class Display(object):
-    def __init__(self, display_size, agent, env):
+    def __init__(self, display_size, agent, env, estimator):
         pygame.init()
         self.surface = pygame.display.set_mode(display_size, 0, 24)
         pygame.display.set_caption('AnimalAI')
@@ -73,6 +73,7 @@ class Display(object):
 
         self.agent = agent
         self.env = env
+        self.estimator = estimator
 
         self.font = pygame.font.SysFont(None, 20)
         
@@ -179,17 +180,15 @@ class Display(object):
 
         self.draw_center_text("V", left + width / 2, bottom + 10)
 
-    def show_agent_pos_angle(self, velocity_pos_angle):
+    def show_agent_pos_angle(self, pos_angle, top=300, left=150):
         """ Draw agent position and angle (for custom environment) """
-        top = 300
-        left = 150
         width = 100
         height = 100
         bottom = top + width
         right = left + height
 
-        pos = velocity_pos_angle[1]
-        angle = velocity_pos_angle[2] / 360.0 * (2.0 * np.pi)
+        pos   = pos_angle[0]
+        angle = pos_angle[1]
         
         target_pos_0 = pos[0] + np.sin(angle) * 5
         target_pos_1 = pos[2] + np.cos(angle) * 5
@@ -238,14 +237,26 @@ class Display(object):
 
     def process(self):
         if self.obs == None:
-            self.obs, self.reward, self.done, self.info = self.env.step([0, 0])
-            
-        action, log_probs, value, entropy, velocity_pos_angle = self.agent.step(self.obs,
-                                                                                self.reward,
-                                                                                self.done,
-                                                                                self.info)
-        
+            # 初回のstate生成
+            self.last_action = np.array([0,0], dtype=np.int32)
+            self.obs, self.reward, self.done, self.info = self.env.step(self.last_action)
+            if self.estimator is not None:
+                self.estimator.reset()
+
+        last_state = self.obs[0] # dtype=float64
+
+        # obsの状態に対してpolicyがactionを決定
+        action, log_probs, value, entropy, velocity, pos_angle = self.agent.step(self.obs,
+                                                                                 self.reward,
+                                                                                 self.done,
+                                                                                 self.info)
+        if self.estimator is not None:
+            estimated_pos_angle = self.estimator.estimate(last_state, self.last_action, velocity)
+            self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)
+
+        # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
+        
         state = self.obs[0] # float64
 
         self.episode_reward += self.reward
@@ -260,6 +271,8 @@ class Display(object):
             self.num_episode += 1
             self.obs = None
             self.episode_reward = 0.0
+        else:
+            self.last_action = action
         
         self.show_image(state)
         self.show_policy(pi0, 10, 150, "PI (F<->B)")
@@ -267,11 +280,8 @@ class Display(object):
         self.show_value()
         self.show_reward()
 
-        if velocity_pos_angle is not None:
-            print(velocity_pos_angle[0].shape)
-            print(velocity_pos_angle[1].shape)
-            print(velocity_pos_angle[2].shape)
-            self.show_agent_pos_angle(velocity_pos_angle)
+        if pos_angle is not None:
+            self.show_agent_pos_angle(pos_angle, top=300, left=150)
 
 
 class Agent(object):
@@ -308,23 +318,23 @@ class Agent(object):
         pass
 
     def fix_brain_info(self, brain_info):
+        velocity = brain_info.vector_observations[:,:3]
+        
         if brain_info.vector_observations.shape[1] > 3:
             # カスタム環境用にvector_observationsをいじったものだった場合
-            # カスタム環境用にvector_observationsをいじったものだった場合
-            velocity = brain_info.vector_observations[:,:3]
-            
             extended_infos = brain_info.vector_observations[:,3:]
+            
             # 元の3次元だけのvector_observationsに戻す
             brain_info.vector_observations = brain_info.vector_observations[:,:3]
             agent_pos   = extended_infos[:,:3]
-            agent_angle = extended_infos[:,3]
-            return (velocity[0], agent_pos[0], agent_angle[0])
+            agent_angle = extended_infos[:,3] / 360.0 * (2.0 * np.pi) # 0~2pi
+            return velocity[0], (agent_pos[0], agent_angle[0])
         else:
-            return None
+            return velocity[0], None
 
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
-        velocity_pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
+        velocity, pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
         # (3,) (3,) ()
         
         out = self.policy.evaluate(brain_info=brain_info)
@@ -332,7 +342,7 @@ class Agent(object):
         log_probs = out['log_probs']
         value     = out['value']
         entropy   = out['entropy']
-        return action, log_probs, value, entropy, velocity_pos_angle
+        return action, log_probs, value, entropy, velocity, pos_angle
 
 
 def init_agent(trainer_config_path, model_path):
@@ -355,15 +365,17 @@ def init_env(env_path, env_seed):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=100)
     parser.add_argument("--recording", type=strtobool, default="false")
-    parser.add_argument("--custom_env", type=strtobool, default="false")
+    parser.add_argument("--custom", type=strtobool, default="false")
+    parser.add_argument("--allo", type=strtobool, default="true")
+    
     args = parser.parse_args()
     
     model_path          = './models/run_005/Learner'
     arena_config_path   = './configs/3-Obstacles.yaml'
 
-    if args.custom_env:
+    if args.custom:
         # Using custom environment for pos/angle visualization
         env_path = '../env/AnimalAICustom'
     else:
@@ -379,7 +391,14 @@ def main():
     agent = init_agent(trainer_config_path, model_path)
     env = init_env(env_path, args.seed)
 
-    display = Display(display_size, agent, env)
+    if args.allo:
+        from allocentric.estimator import AllocentricEstimator
+        allo_model_dir = "saved"
+        estimator = AllocentricEstimator(allo_model_dir)
+    else:
+        estimator = None
+
+    display = Display(display_size, agent, env, estimator)
     clock = pygame.time.Clock()
 
     running = True

@@ -2,8 +2,8 @@
 import tensorflow as tf
 import numpy as np
 
-from model import AllocentricModel
-import utils
+from .model import AllocentricModel
+from . import utils
 
 
 class AllocentricEstimator(object):
