@@ -318,7 +318,6 @@ class Agent(object):
         self.trainer_params = yaml.load(open(trainer_config_path))['Learner']
         self.trainer_params['keep_checkpoints'] = 0
         self.trainer_params['model_path']       = model_path
-        self.trainer_params['use_recurrent']    = False
 
         self.policy = PPOPolicy(brain=self.brain,
                                 seed=0,
@@ -396,6 +395,7 @@ def main():
         #env_path = '../../../AnimalAI-Olympics-inf-mnky/env/AnimalAI'
     
     trainer_config_path = './configs/trainer_config.yaml'
+    #trainer_config_path = './configs/trainer_config_rec.yaml'
     
     recording = args.recording
     display_size = (900, 528)

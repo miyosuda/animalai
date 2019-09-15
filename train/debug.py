@@ -14,11 +14,12 @@ sub_id           = 1
 run_seed         = 2
 keep_checkpoints = 10000
 save_freq        = 20000
-load_model       = False
+#load_model       = False
+load_model       = True
 train_model      = True
 lesson           = 0
 
-trainer_config_path = 'configs/trainer_config.yaml'
+trainer_config_path = 'configs/trainer_config_rec.yaml'
 model_path          = './models/{run_id}'.format(run_id=run_id)
 summaries_dir       = './summaries'
 
@@ -110,10 +111,12 @@ tc.initialize_trainers(trainer_config)
 for _, t in tc.trainers.items():
     print(t)
 
-
 curr_info = tc._reset_env(env)
 
 # 学習を1ステップ進める
 new_info = tc.take_step(env, curr_info)
 curr_info = new_info
 
+# 学習モデルの保存
+tc._create_model_path(model_path)
+tc._save_model(steps=0)

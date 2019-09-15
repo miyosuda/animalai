@@ -33,6 +33,7 @@ class LearningModel(object):
         
         self.use_recurrent = use_recurrent
         if self.use_recurrent:
+            # m_sizeはデフォルトで256
             self.m_size = m_size
         else:
             self.m_size = 0
@@ -337,10 +338,12 @@ class LearningModel(object):
         name: 
             The scope of the LSTM cell.
         """
-        s_size = input_state.get_shape().as_list()[1]
-        m_size = memory_in.get_shape().as_list()[1]
+        s_size = input_state.get_shape().as_list()[1] # 512+6
+        m_size = memory_in.get_shape().as_list()[1]   # 256
         lstm_input_state = tf.reshape(input_state, shape=[-1, sequence_length, s_size])
+        # (None,None,518)
         memory_in = tf.reshape(memory_in[:, :], [-1, m_size])
+        # 256をふたつに割って、unit size=128のLSTMにしている
         _half_point = int(m_size / 2)
         
         with tf.variable_scope(name):
@@ -351,6 +354,7 @@ class LearningModel(object):
                                                                  initial_state=lstm_vector_in)
 
         recurrent_output = tf.reshape(recurrent_output, shape=[-1, _half_point])
+        # LSTMのcとhをconcatして、size=256のmemoryとしている.
         return recurrent_output, tf.concat([lstm_state_out.c, lstm_state_out.h], axis=1)
 
     def create_dc_actor_critic(self, h_size, num_layers):
@@ -374,6 +378,7 @@ class LearningModel(object):
             prev_action_oh = tf.concat([
                 tf.one_hot(self.prev_action[:, i], self.act_size[i]) for i in
                 range(len(self.act_size))], axis=1)
+            # (None, 6)
             hidden = tf.concat([hidden, prev_action_oh], axis=1)
 
             self.memory_in = tf.placeholder(shape=[None, self.m_size],
