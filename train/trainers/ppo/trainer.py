@@ -162,6 +162,7 @@ class PPOTrainer(Trainer):
 
     def take_action(self, all_brain_info: AllBrainInfo):
         """
+        Actionを決定する.
         Decides actions given observations information, and takes them in environment.
 
         :param all_brain_info: 
@@ -174,10 +175,13 @@ class PPOTrainer(Trainer):
         if len(curr_brain_info.agents) == 0:
             return [], [], [], None, None
 
+        # PPOPolicyにてActionを決定
         run_out = self.policy.evaluate(curr_brain_info)
+
         self.stats['Policy/Value Estimate'].append(run_out['value'].mean())
         self.stats['Policy/Entropy'].append(run_out['entropy'].mean())
         self.stats['Policy/Learning Rate'].append(run_out['learning_rate'])
+        
         if self.policy.use_recurrent:
             return run_out['action'], run_out['memory_out'], None, \
                    run_out['value'], run_out

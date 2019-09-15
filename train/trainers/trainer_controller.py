@@ -107,6 +107,7 @@ class TrainerController(object):
         trainer_parameters_dict = {}
 
         for brain_name in self.external_brains:
+            # brain_nameは "Leaner"
             trainer_parameters = trainer_config['default'].copy()
             trainer_parameters['summary_path'] = '{basedir}/{name}'.format(
                 basedir=self.summaries_dir,
@@ -116,7 +117,7 @@ class TrainerController(object):
                 name=brain_name)
             trainer_parameters['keep_checkpoints'] = self.keep_checkpoints
             if brain_name in trainer_config:
-                _brain_key = brain_name
+                _brain_key = brain_name # "Learner"
                 while not isinstance(trainer_config[_brain_key], dict):
                     _brain_key = trainer_config[_brain_key]
                 for k in trainer_config[_brain_key]:
@@ -125,10 +126,11 @@ class TrainerController(object):
 
         for brain_name in self.external_brains:
             if trainer_parameters_dict[brain_name]['trainer'] == 'ppo':
+                # ここで PPOTrainer 生成
                 self.trainers[brain_name] = PPOTrainer(
                     self.external_brains[brain_name],
                     0,
-                    trainer_parameters_dict[brain_name],
+                    trainer_parameters_dict[brain_name], # trainer_configで指定した内容
                     self.train_model,
                     self.load_model,
                     self.seed,
@@ -172,6 +174,7 @@ class TrainerController(object):
         tf.reset_default_graph()
 
         # Prevent a single session from taking all GPU memory.
+        # PPOTrainer を生成
         self.initialize_trainers(trainer_config)
         
         for _, t in self.trainers.items():
@@ -195,12 +198,11 @@ class TrainerController(object):
                 
                 if self.global_step % self.save_freq == 0 and self.global_step != 0 \
                         and self.train_model:
-                    # Save Tensorflow model
                     # 学習モデルの保存
                     self._save_model(steps=self.global_step)
                 curr_info = new_info
-            # Final save Tensorflow model
             if self.global_step != 0 and self.train_model:
+                # 最後にモデルを保存
                 self._save_model(steps=self.global_step)
         except KeyboardInterrupt:
             if self.train_model:
@@ -222,26 +224,34 @@ class TrainerController(object):
         take_action_value, \
         take_action_outputs \
             = {}, {}, {}, {}, {}
-        
+
         for brain_name, trainer in self.trainers.items():
-            (take_action_vector[brain_name],
-             take_action_memories[brain_name],
-             take_action_text[brain_name],
-             take_action_value[brain_name],
+            # Actionを決定する. 全arena分の配列になっている.
+            (take_action_vector[brain_name],   # 発行するAction
+             take_action_memories[brain_name], # None (use_recurrent時に利用)
+             take_action_text[brain_name],     # 常にNone
+             take_action_value[brain_name],    # 各Arenaに一つの値
              take_action_outputs[brain_name]) = trainer.take_action(curr_info)
-            
+            # take_action_outputsは action, log_probs, value, entropy, etc...
+
+        # 選んだActionによって環境を1 step進める
         new_info = env.step(vector_action=take_action_vector,
                             memory=take_action_memories,
                             text_action=take_action_text,
                             value=take_action_value)
+
+        # BrainInfoには visual_observations, vector_observations, memories, rewards, local_done,
+        # etc.. が入っている.
+        # visual_observations = (4, 84, 84, 3) など
         
         for brain_name, trainer in self.trainers.items():
+            # ExperienceBufferに貯める
             trainer.add_experiences(curr_info, new_info, take_action_outputs[brain_name])
             trainer.process_experiences(curr_info, new_info)
             
             if trainer.is_ready_update() and self.train_model \
                     and trainer.get_step <= trainer.get_max_steps:
-                # Perform gradient descent with experience buffer
+                # ExperienceBuffer に溜まった内容で Policy の学習をSGDで行う.
                 trainer.update_policy()
                 
             # Write training statistics to Tensorboard.

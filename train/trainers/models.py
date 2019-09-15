@@ -362,8 +362,10 @@ class LearningModel(object):
         num_layers: 
             Number of hidden linear layers.
         """
+        # h_sizeはデフォルトで256
         hidden_streams = self.create_observation_streams(1, h_size, num_layers)
         hidden = hidden_streams[0]
+        # hidden=(None, 512)
 
         if self.use_recurrent:
             self.prev_action = tf.placeholder(shape=[None, len(self.act_size)],
@@ -384,6 +386,7 @@ class LearningModel(object):
 
         policy_branches = []
         for size in self.act_size:
+            # size=3で、左右&前後で2回通る
             policy_branches.append(
                 tf.layers.dense(hidden,
                                 size,
@@ -395,6 +398,7 @@ class LearningModel(object):
         self.all_log_probs = tf.concat([branch for branch in policy_branches],
                                        axis=1,
                                        name="action_probs")
+        # (None, 6)
 
         self.action_masks = tf.placeholder(shape=[None, sum(self.act_size)],
                                            dtype=tf.float32,

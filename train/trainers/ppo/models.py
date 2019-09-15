@@ -59,9 +59,10 @@ class PPOModel(LearningModel):
         
         if num_layers < 1:
             num_layers = 1
-            
+
         self.last_reward, self.new_reward, self.update_reward = self.create_reward_encoder()
-        
+
+        # ここでメインのNetwork作成(default configでnum_layers=1に設定されている)
         self.create_dc_actor_critic(h_size, num_layers)
             
         if self.use_curiosity:
@@ -118,13 +119,14 @@ class PPOModel(LearningModel):
                     self.curiosity_enc_size,
                     self.swish,
                     1,
-                    "stream_{}_visual_obs_encoder"
-                    .format(i), False)
+                    "stream_{}_visual_obs_encoder".format(i),
+                    False)
 
                 encoded_next_visual = self.create_visual_observation_encoder(
                     self.next_visual_in[i],
                     self.curiosity_enc_size,
-                    self.swish, 1,
+                    self.swish,
+                    1,
                     "stream_{}_visual_obs_encoder".format(i),
                     True)
                 visual_encoders.append(encoded_visual)
