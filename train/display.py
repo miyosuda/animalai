@@ -164,7 +164,7 @@ class Display(object):
         d = max_v - min_v
         last_r = 0.0
         for i, v in enumerate(values):
-            r = (v - min_v) / d
+            r = (v - min_v) / d if abs(d) > 1e-6 else 1.0
             if i > 0:
                 x0 = i - 1 + left
                 x1 = i + left
