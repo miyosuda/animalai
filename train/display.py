@@ -224,6 +224,17 @@ class Display(object):
         self.draw_right_text("Number of Episodes: ", 900-512-8-8-50, 8+16+16+16)
         self.draw_right_text("{}".format(self.num_episode), 900-512-8-8, 8+16+16+16)
 
+    def show_velocity(self, velocity):
+        top = 150 + 10
+        left = 250 + 10 + 15
+        width = 100 - 20
+        height = 100 - 20
+        center = (left + width//2, top + height//2)
+        pygame.draw.circle(self.surface, GRAY, center, width//2, 1)
+        vx = int(velocity[0] / 40.0 * width)
+        vz = int(velocity[2] / 40.0 * height)
+        pygame.draw.line(self.surface, WHITE, center, (center[0]-vx, center[1]-vz), 2)
+
     def get_frame(self):
         data = self.surface.get_buffer().raw
         return data
@@ -279,6 +290,7 @@ class Display(object):
         self.show_policy(pi1, 10, 250, "PI (R<->L)")
         self.show_value()
         self.show_reward()
+        self.show_velocity(velocity)
 
         if pos_angle is not None:
             self.show_agent_pos_angle(pos_angle, top=300, left=150)
@@ -368,7 +380,7 @@ def main():
     parser.add_argument("--seed", type=int, default=100)
     parser.add_argument("--recording", type=strtobool, default="false")
     parser.add_argument("--custom", type=strtobool, default="false")
-    parser.add_argument("--allo", type=strtobool, default="true")
+    parser.add_argument("--allo", type=strtobool, default="false")
     
     args = parser.parse_args()
     
