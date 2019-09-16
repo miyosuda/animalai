@@ -28,12 +28,12 @@ class EgocentricIntegrator(object):
         
         sin_angle = np.sin(cur_angle_radian)
         cos_angle = np.cos(cur_angle_radian)
-        
-        dx = scaled_local_velocity[2] * sin_angle + \
-             scaled_local_velocity[0] * cos_angle
+
+        dx = scaled_local_velocity[0] * cos_angle + \
+             scaled_local_velocity[2] * sin_angle
         dy = scaled_local_velocity[1]
-        dz = scaled_local_velocity[2] * cos_angle - \
-             scaled_local_velocity[0] * sin_angle
+        dz = scaled_local_velocity[0] * (-sin_angle) + \
+             scaled_local_velocity[2] * cos_angle
         
         self.local_pos[0] += dx
         self.local_pos[1] += dy
@@ -56,11 +56,11 @@ class EgocentricIntegrator(object):
         sin_angle = np.sin(absolute_angle)
         cos_angle = np.cos(absolute_angle)
         
-        dx = scaled_local_velocity[2] * sin_angle + \
-             scaled_local_velocity[0] * cos_angle
+        dx = scaled_local_velocity[0] * cos_angle + \
+             scaled_local_velocity[2] * sin_angle
         dy = scaled_local_velocity[1]
-        dz = scaled_local_velocity[2] * cos_angle - \
-             scaled_local_velocity[0] * sin_angle
+        dz = scaled_local_velocity[0] * (-sin_angle) + \
+             scaled_local_velocity[2] * cos_angle
         
         self.debug_absolute_pos[0] += dx
         self.debug_absolute_pos[1] += dy
