@@ -65,7 +65,7 @@ class ValueHistory(object):
 
 
 class Display(object):
-    def __init__(self, display_size, agent, env, estimator):
+    def __init__(self, display_size, agent, env, estimator, integrator):
         pygame.init()
         self.surface = pygame.display.set_mode(display_size, 0, 24)
         pygame.display.set_caption('AnimalAI')
@@ -74,6 +74,7 @@ class Display(object):
         self.agent = agent
         self.env = env
         self.estimator = estimator
+        self.integrator = integrator
 
         self.font = pygame.font.SysFont(None, 20)
         
@@ -249,21 +250,39 @@ class Display(object):
     def process(self):
         if self.obs == None:
             # 初回のstate生成
-            self.last_action = np.array([0,0], dtype=np.int32)
+            self.last_action = np.array([[0,0]], dtype=np.int32)
             self.obs, self.reward, self.done, self.info = self.env.step(self.last_action)
             if self.estimator is not None:
                 self.estimator.reset()
+            if self.integrator is not None:
+                self.integrator.reset()
 
         last_state = self.obs[0] # dtype=float64
 
-        # obsの状態に対してpolicyがactionを決定
+        # obsの状態に対して発行するactionをpolicyが決定.
+        # last_actionを取った結果がobs.
+        # velocityはobs(=last_state)になる前のlocal velocity.
+        # pos_angleはobs(=last_staet)の状態の絶対座標と絶対角度
         action, log_probs, value, entropy, velocity, pos_angle = self.agent.step(self.obs,
                                                                                  self.reward,
                                                                                  self.done,
                                                                                  self.info)
+        if self.integrator is not None:
+            self.integrator.integrate(self.last_action, velocity)
+            # ここでの相対角度はobs(last_state), およびpos_angleの内容に相当.
+            if pos_angle is not None:
+                rel_angle = self.integrator.angle
+                abs_angle = pos_angle[1]
+                diff_angle = abs_angle - rel_angle
+                if diff_angle < 0.0:
+                    diff_angle += 2.0 * np.pi
+                print("rel-angle={}, abs-angle={}, diff={}".format(rel_angle,
+                                                                   abs_angle,
+                                                                   diff_angle))
         if self.estimator is not None:
             estimated_pos_angle = self.estimator.estimate(last_state, self.last_action, velocity)
             self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)
+
 
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
@@ -384,7 +403,9 @@ def main():
     args = parser.parse_args()
     
     model_path          = './models/run_005/Learner'
+    #model_path          = './models/run_023/Learner'
     arena_config_path   = './configs/3-Obstacles.yaml'
+    #arena_config_path   = './configs/1-Food.yaml'
 
     if args.custom:
         # Using custom environment for pos/angle visualization
@@ -405,12 +426,15 @@ def main():
 
     if args.allo:
         from allocentric.estimator import AllocentricEstimator
+        from allocentric.integrator import EgocentricIntegrator
         allo_model_dir = "saved"
         estimator = AllocentricEstimator(allo_model_dir)
+        integrator = EgocentricIntegrator()
     else:
         estimator = None
+        integrator = None
 
-    display = Display(display_size, agent, env, estimator)
+    display = Display(display_size, agent, env, estimator, integrator)
     clock = pygame.time.Clock()
 
     running = True
