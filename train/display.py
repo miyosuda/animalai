@@ -248,6 +248,9 @@ class Display(object):
         return y
 
     def process(self):
+        # 今回resetが起こったかどうか(デバッグ用なので最終的には消す)
+        debug_has_reset = False
+        
         if self.obs == None:
             # 初回のstate生成
             self.last_action = np.array([[0,0]], dtype=np.int32)
@@ -256,6 +259,7 @@ class Display(object):
                 self.estimator.reset()
             if self.integrator is not None:
                 self.integrator.reset()
+            debug_has_reset = True
 
         last_state = self.obs[0] # dtype=float64
 
@@ -267,9 +271,17 @@ class Display(object):
                                                                                  self.reward,
                                                                                  self.done,
                                                                                  self.info)
+        
+        if debug_has_reset and pos_angle is not None and self.integrator is not None:
+            # 今回リセットが起こったので、リセット時の絶対位置角度をデバッグ用に記録
+            self.integrator.debug_set_reset_pos_angle(pos_angle[0], pos_angle[1])
+            
         if self.integrator is not None:
+            if pos_angle is not None:
+                self.integrator.debug_confirm(velocity, pos_angle[0], pos_angle[1])
             self.integrator.integrate(self.last_action, velocity)
             # ここでの相対角度はobs(last_state), およびpos_angleの内容に相当.
+            """
             if pos_angle is not None:
                 rel_angle = self.integrator.angle
                 abs_angle = pos_angle[1]
@@ -279,6 +291,7 @@ class Display(object):
                 print("rel-angle={}, abs-angle={}, diff={}".format(rel_angle,
                                                                    abs_angle,
                                                                    diff_angle))
+            """
         if self.estimator is not None:
             estimated_pos_angle = self.estimator.estimate(last_state, self.last_action, velocity)
             self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)
