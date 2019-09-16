@@ -12,3 +12,6 @@ train/data
 
 train/saved*
 train/run.sh
+
+*.DS_Store
+
