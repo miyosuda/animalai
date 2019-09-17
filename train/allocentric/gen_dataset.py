@@ -105,7 +105,7 @@ def save_state(state, dir_path, i):
 
 
 def load_state(index):
-    dir_path = "base_data/dir{}".format(index // FILE_SIZE_IN_DIR)
+    dir_path = "{}/dir{}".format(BASE_DATA_DIR, index // FILE_SIZE_IN_DIR)
     file_name = "{}/image{}.png".format(dir_path, index)
     image = cv2.imread(file_name)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -129,7 +129,7 @@ def collect(env, agent, step_size):
 
     for i in range(step_size):
         if i % FILE_SIZE_IN_DIR == 0:
-            dir_path = "base_data/dir{}".format(i // FILE_SIZE_IN_DIR)
+            dir_path = "{}/dir{}".format(BASE_DATA_DIR,i // FILE_SIZE_IN_DIR)
             if not os.path.exists(dir_path):
                 os.mkdir(dir_path)
 
