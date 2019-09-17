@@ -15,20 +15,19 @@ class EgocentricIntegrator(object):
         self.relative_angle_degree = 0
         # 開始位置、角度からの積分された相対位置
         self.local_pos = np.zeros([3], dtype=np.float32)
-        print("reset") #..
 
-    def calculate_dpos(self, angle_radian, local_velocity):
-        """ local velocityとangle(localまたはgloal)から位置の変化量を計算 """
-        scaled_local_velocity = local_velocity * VELOCITY_CONSTANT
-        
+    def calculate_dpos(self, angle_radian, local_vec):
+        """ localの変化量とangleから位置の変化量を計算 """
         sin_angle = np.sin(angle_radian)
         cos_angle = np.cos(angle_radian)
 
-        dx = scaled_local_velocity[0] * cos_angle + \
-             scaled_local_velocity[2] * sin_angle
-        dy = scaled_local_velocity[1]
-        dz = scaled_local_velocity[0] * (-sin_angle) + \
-             scaled_local_velocity[2] * cos_angle
+        vx = local_vec[0]
+        vy = local_vec[1]
+        vz = local_vec[2]
+
+        dx = vx *   cos_angle  + vz * sin_angle
+        dy = vy
+        dz = vx * (-sin_angle) + vz * cos_angle
         return np.array([dx, dy, dz], dtype=np.float32)
 
     def integrate(self, action, local_velocity):
@@ -44,7 +43,8 @@ class EgocentricIntegrator(object):
 
         # 更新後の角度を位置更新に利用している
         updated_angle_radian = self.angle
-        dpos = self.calculate_dpos(updated_angle_radian, local_velocity)
+        dpos = self.calculate_dpos(updated_angle_radian,
+                                   local_velocity * VELOCITY_CONSTANT)
         self.local_pos += dpos
 
     @property
@@ -64,7 +64,8 @@ class EgocentricIntegrator(object):
 
     def debug_confirm(self, local_velocity, absolute_pos, absolute_angle):
         """ 絶対角度を利用してデバッグで位置の積分計算を確認 """
-        dpos = self.calculate_dpos(absolute_angle, local_velocity)
+        dpos = self.calculate_dpos(absolute_angle,
+                                   local_velocity * VELOCITY_CONSTANT)
         self.debug_absolute_pos += dpos
 
         pos_diff = absolute_pos - self.debug_absolute_pos
@@ -84,19 +85,8 @@ class EgocentricIntegrator(object):
         """ デバッグ用の絶対位置を返す """
         # self.local_posをself.debug_initial_absolute_angleで変換し、
         # self.debug_initial_absolute_posを足す.
-
-        # TODO: calculate_dpos()にまとめられる.
-        # (その場合はVELOCITY_CONSTANTをかけないようにする必要あり)
-        sin_angle = np.sin(self.debug_initial_absolute_angle)
-        cos_angle = np.cos(self.debug_initial_absolute_angle)
-        dx = self.local_pos[0] * cos_angle + \
-             self.local_pos[2] * sin_angle
-        dy = self.local_pos[1]
-        dz = self.local_pos[0] * (-sin_angle) + \
-             self.local_pos[2] * cos_angle
-        dpos = np.array([dx, dy, dz], dtype=np.float32)
-        #dpos = self.calculate_dpos(self.debug_initial_absolute_angle,
-        #                           self.local_pos)
+        dpos = self.calculate_dpos(self.debug_initial_absolute_angle,
+                                   self.local_pos)
         absolute_pos = self.debug_initial_absolute_pos + dpos
         return absolute_pos
 
