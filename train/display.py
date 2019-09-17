@@ -281,17 +281,11 @@ class Display(object):
                 self.integrator.debug_confirm(velocity, pos_angle[0], pos_angle[1])
             self.integrator.integrate(self.last_action, velocity)
             # ここでの相対角度はobs(last_state), およびpos_angleの内容に相当.
-            """
             if pos_angle is not None:
-                rel_angle = self.integrator.angle
-                abs_angle = pos_angle[1]
-                diff_angle = abs_angle - rel_angle
-                if diff_angle < 0.0:
-                    diff_angle += 2.0 * np.pi
-                print("rel-angle={}, abs-angle={}, diff={}".format(rel_angle,
-                                                                   abs_angle,
-                                                                   diff_angle))
-            """
+                debug_integated_pos_angle = self.integrator.debug_integrated_absolute_pos_angle
+                self.show_agent_pos_angle(debug_integated_pos_angle,
+                                          top=410, left=250+20)
+
         if self.estimator is not None:
             estimated_pos_angle = self.estimator.estimate(last_state, self.last_action, velocity)
             self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)

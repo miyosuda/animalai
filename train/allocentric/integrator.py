@@ -72,7 +72,7 @@ class EgocentricIntegrator(object):
 
         integrated_pos = self.debug_integrated_absolute_pos
         pos_diff2 = absolute_pos - integrated_pos
-        print("diff2={}".format(pos_diff2)) #..
+        #print("diff2={}".format(pos_diff2)) #..
         
     @property
     def debug_integrated_absolute_angle(self):
@@ -99,3 +99,8 @@ class EgocentricIntegrator(object):
         #                           self.local_pos)
         absolute_pos = self.debug_initial_absolute_pos + dpos
         return absolute_pos
+
+    @property
+    def debug_integrated_absolute_pos_angle(self):
+        return (self.debug_integrated_absolute_pos,
+                self.debug_integrated_absolute_angle)
