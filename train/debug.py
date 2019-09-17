@@ -14,8 +14,7 @@ sub_id           = 1
 run_seed         = 2
 keep_checkpoints = 10000
 save_freq        = 20000
-#load_model       = False
-load_model       = True
+load_model       = False
 train_model      = True
 lesson           = 0
 

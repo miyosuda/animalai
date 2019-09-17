@@ -7,7 +7,7 @@ VELOCITY_CONSTANT = 0.0595
 
 class EgocentricIntegrator(object):
     def __init__(self):
-        pass
+        self.reset()
 
     def reset(self):
         # TODO: 複数Arenaの対応がまだ
