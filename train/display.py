@@ -290,15 +290,17 @@ class Display(object):
             estimated_pos_angle = self.estimator.estimate(last_state, self.last_action, velocity)
             self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)
 
-
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
+        # obs:[2], obs[0]:(84,84,3)   obs[1]:(3,)　デバッグ時は(7,)
+        # reward: float
+        # done: bool
         
         state = self.obs[0] # float64
-
+        
         self.episode_reward += self.reward
         self.value_history.add_value(value)
-
+        
         pi0 = self.softmax(log_probs[0,0:3]) # 前後方向のAction
         pi1 = self.softmax(log_probs[0,3:])  # 左右方向のAction
 
