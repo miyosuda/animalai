@@ -1,5 +1,6 @@
 __pycache__
 env/*
+!env/.gitkeep
 
 *.ipynb_checkpoints
 *.mov

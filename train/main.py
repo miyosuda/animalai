@@ -22,8 +22,7 @@ worker_id        = random.randint(1, 100)
 base_port        = 5005
 save_freq        = 20000
 curriculum_file  = None
-#load_model       = False
-load_model       = True
+load_model       = False
 train_model      = True
 lesson           = 0
 
