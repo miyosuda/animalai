@@ -7,3 +7,6 @@ unzip ./env/env_linux_v1.0.0.zip -d ./env/
 
 # Prepre screen config
 cp ./scripts/dot.screenrc ~/.screenrc
+
+# Install docker-compose
+sudo apt-get install docker-compose -y
