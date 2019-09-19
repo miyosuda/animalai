@@ -22,6 +22,7 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 ENV PATH /opt/conda/envs/python36/bin:/opt/conda/envs/bin:$PATH
 
+pip install tensorflow-gpu==1.14
 RUN pip install animalai
 
 ENV HTTP_PROXY ""
