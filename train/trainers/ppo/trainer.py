@@ -258,18 +258,19 @@ class PPOTrainer(Trainer):
         """
         Adds experiences to each agent's experience history.
 
-        :param curr_all_info: 
+        :curr_all_info: 
             Dictionary of all current brains and corresponding BrainInfo.
-        :param next_all_info: 
+        :next_all_info: 
             Dictionary of all current brains and corresponding BrainInfo.
-        :param 
-            take_action_outputs: The outputs of the take action method.
+        :take_action_outputs: 
+            The outputs of the take action method.
         """
         curr_info = curr_all_info[self.brain_name]
         next_info = next_all_info[self.brain_name]
 
         for agent_id in curr_info.agents:
-            self.training_buffer[agent_id].last_brain_info = curr_info
+            # AgentBuffer のlast_brain_info にとっておく
+            self.training_buffer[agent_id].last_brain_info          = curr_info
             self.training_buffer[agent_id].last_take_action_outputs = take_action_outputs
 
         if curr_info.agents != next_info.agents:
@@ -277,17 +278,21 @@ class PPOTrainer(Trainer):
         else:
             curr_to_use = curr_info
 
+        # 内部報酬の算出
         intrinsic_rewards = self.policy.get_intrinsic_rewards(curr_to_use, next_info)
 
         for agent_id in next_info.agents:
-            stored_info = self.training_buffer[agent_id].last_brain_info
+            # Arena毎にAgentがひとつある.
+            # Agent毎にAgentBufferが用意されている.
+            stored_info                = self.training_buffer[agent_id].last_brain_info
             stored_take_action_outputs = self.training_buffer[agent_id].last_take_action_outputs
             
             if stored_info is not None:
-                idx = stored_info.agents.index(agent_id)
+                idx      = stored_info.agents.index(agent_id)
                 next_idx = next_info.agents.index(agent_id)
                 
                 if not stored_info.local_done[idx]:
+                    # Tarminal
                     for i, _ in enumerate(stored_info.visual_observations):
                         self.training_buffer[agent_id]['visual_obs%d' % i].append(
                             stored_info.visual_observations[i][idx])
@@ -310,7 +315,7 @@ class PPOTrainer(Trainer):
                         stored_info.action_masks[idx], padding_value=1)
                         
                     a_dist = stored_take_action_outputs['log_probs']
-                    value = stored_take_action_outputs['value']
+                    value  = stored_take_action_outputs['value']
                     
                     self.training_buffer[agent_id]['actions'].append(actions[idx])
                     self.training_buffer[agent_id]['prev_action'].append(
@@ -350,20 +355,23 @@ class PPOTrainer(Trainer):
         Checks agent histories for processing condition, and processes them as necessary.
         Processing involves calculating value and advantage targets for model updating step.
         
-        :param current_info: 
+        :current_info: 
             Dictionary of all current brains and corresponding BrainInfo.
-        :param new_info: 
+        :new_info: 
             Dictionary of all next brains and corresponding BrainInfo.
         """
 
         info = new_info[self.brain_name]
         
         for l in range(len(info.agents)):
+            # 各AgentにひとつあるAgentBufferから取得
             agent_actions = self.training_buffer[info.agents[l]]['actions']
-            
+
+            # time_horizon はデフォルトで128
             if ((info.local_done[l] or len(agent_actions) > self.trainer_parameters[
                     'time_horizon'])
                     and len(agent_actions) > 0):
+                # Episodeがterminateした、または128 stepを超えた時
                 agent_id = info.agents[l]
                 
                 if info.local_done[l] and not info.max_reached[l]:
@@ -389,13 +397,19 @@ class PPOTrainer(Trainer):
                     self.training_buffer[agent_id]['advantages'].get_batch()
                     + self.training_buffer[agent_id]['value_estimates'].get_batch())
 
+                # TODO: 要調査
+                # 各Agentバッファから共通のUpdateバッファへコピー？
+                # Recurrent学習時はtraining_lengthは64とかになるが、非Recurrent時は1
                 self.training_buffer.append_update_buffer(
-                    agent_id, batch_size=None,
+                    agent_id,
+                    batch_size=None,
                     training_length=self.policy.sequence_length)
 
+                # AgentBufferをリセット？
                 self.training_buffer[agent_id].reset_agent()
                 
                 if info.local_done[l]:
+                    # 1Areaのエピソードが終了したので、統計情報用にreward,spidoe長等を記録しておく
                     self.stats['Environment/Cumulative Reward'].append(
                         self.cumulative_rewards.get(agent_id, 0))
                     self.reward_buffer.appendleft(self.cumulative_rewards.get(agent_id, 0))
@@ -478,11 +492,11 @@ def discount_rewards(r,
     """
     Computes discounted sum of future rewards for use in updating value estimate.
     
-    :param r: 
+    :r: 
         List of rewards.
-    :param gamma: 
+    :gamma: 
         Discount factor.
-    :param value_next: 
+    :value_next: 
         T+1 value estimate for returns calculation.
     :return: 
         discounted sum of future rewards as list.
@@ -503,15 +517,15 @@ def get_gae(rewards,
     """
     Computes generalized advantage estimate for use in updating policy.
 
-    :param rewards: 
+    :rewards: 
         list of rewards for time-steps t to T.
-    :param value_next: 
+    :value_next: 
         Value estimate for time-step T+1.
-    :param value_estimates: 
+    :value_estimates: 
         list of value estimates for time-steps t to T.
-    :param gamma: 
+    :gamma: 
         Discount factor.
-    :param lambd: 
+    :lambd: 
         GAE weighing factor.
     :return: 
         list of advantage estimates for time-steps t to T.

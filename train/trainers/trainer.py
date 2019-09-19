@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # # Unity ML-Agents Toolkit
 import logging
 
@@ -33,7 +34,7 @@ class Trainer(object):
             The identifier of the current run
         """
         self.param_keys = []
-        self.brain_name = brain.brain_name
+        self.brain_name = brain.brain_name # "Learner"
         self.run_id = run_id
         self.trainer_parameters = trainer_parameters
         self.is_training = training
