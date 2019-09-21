@@ -18,7 +18,8 @@ load_model       = False
 train_model      = True
 lesson           = 0
 
-trainer_config_path = 'configs/trainer_config_rec.yaml'
+#trainer_config_path = 'configs/trainer_config_rec.yaml'
+trainer_config_path = 'configs/trainer_config.yaml'
 model_path          = './models/{run_id}'.format(run_id=run_id)
 summaries_dir       = './summaries'
 

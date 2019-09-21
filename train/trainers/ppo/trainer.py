@@ -292,7 +292,7 @@ class PPOTrainer(Trainer):
                 next_idx = next_info.agents.index(agent_id)
                 
                 if not stored_info.local_done[idx]:
-                    # Tarminal
+                    # Not tarminal
                     for i, _ in enumerate(stored_info.visual_observations):
                         self.training_buffer[agent_id]['visual_obs%d' % i].append(
                             stored_info.visual_observations[i][idx])
@@ -397,15 +397,16 @@ class PPOTrainer(Trainer):
                     self.training_buffer[agent_id]['advantages'].get_batch()
                     + self.training_buffer[agent_id]['value_estimates'].get_batch())
 
-                # TODO: 要調査
-                # 各Agentバッファから共通のUpdateバッファへコピー？
-                # Recurrent学習時はtraining_lengthは64とかになるが、非Recurrent時は1
+                # 各Agentバッファから共通のUpdateバッファへコピー.
+                # Recurrent学習時はtraining_lengthは64とかになるが、非Recurrent時は1.
+                # Recurrent学習時はsequence_length単位で1バッチとしてまとめられ、
+                # 足りない部分は0でパディングされる.
                 self.training_buffer.append_update_buffer(
                     agent_id,
                     batch_size=None,
                     training_length=self.policy.sequence_length)
 
-                # AgentBufferをリセット？
+                # AgentBufferを全クリア
                 self.training_buffer[agent_id].reset_agent()
                 
                 if info.local_done[l]:
