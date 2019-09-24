@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 
 from animalai.envs.exception import UnityException
@@ -67,19 +68,27 @@ class Buffer(dict):
                 self[:] = []
                 self[:] = list(np.array(data))
 
-            def get_batch(self, batch_size=None, training_length=1, sequential=True):
+            def get_batch(self,
+                          batch_size=None,
+                          training_length=1,
+                          sequential=True):
                 """
                 Retrieve the last batch_size elements of length training_length
                 from the list of np.array
+                
+                :batch_size:      
+                   The number of elements to retrieve. If None:
+                   All elements will be retrieved.
 
-                :param batch_size: The number of elements to retrieve. If None:
-                All elements will be retrieved.
-                :param training_length: The length of the sequence to be retrieved. If
-                None: only takes one element.
-                :param sequential: If true and training_length is not None: the elements
-                will not repeat in the sequence. [a,b,c,d,e] with training_length = 2 and
-                sequential=True gives [[0,a],[b,c],[d,e]]. If sequential=False gives
-                [[a,b],[b,c],[c,d],[d,e]]
+                :training_length: 
+                   The length of the sequence to be retrieved. 
+                   If None: only takes one element.
+
+                :sequential: 
+                   If true and training_length is not None: the elements
+                   will not repeat in the sequence. [a,b,c,d,e] with training_length = 2 and
+                   sequential=True gives [[0,a],[b,c],[d,e]]. If sequential=False gives
+                   [[a,b],[b,c],[c,d],[d,e]]
                 """
                 if training_length == 1:
                     # When the training length is 1, the method returns a list of elements,
