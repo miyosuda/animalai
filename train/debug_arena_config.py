@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import yaml
 
 from animalai.envs.arena_config import ArenaConfig, Arena, Item, RGB, Vector3
 
@@ -43,8 +44,12 @@ def create_death_zone_arena_config(n_arenas=16, t=250):
 
 
 arena_config = create_death_zone_arena_config()
-#arena_config.save_config("out.json")
 
+f = open("out.yml", "w+")
+f.write(yaml.dump(arena_config))
+f.close()
+
+arena_config2 = ArenaConfig("out.yml")
 
 def debug_confirm_arena_config(env_path, arena_config):
     env_path = (env_path.strip()
@@ -70,4 +75,5 @@ def debug_confirm_arena_config(env_path, arena_config):
         env.close()
         
 env_path = '../env/AnimalAI'
-debug_confirm_arena_config(env_path, arena_config)
+debug_confirm_arena_config(env_path, arena_config2)
+
