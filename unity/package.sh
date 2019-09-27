@@ -3,7 +3,7 @@
 # MacOSX Custom
 cp -rf ./CustomAnimalAI-Environment/Builds/AnimalAICustom.app .
 zip -r env_mac_v1.0.0_custom.zip AnimalAICustom.app
-rm -rf ./CustomAnimalAI-Environment/Builds/AnimalAICustom.app
+rm -rf ./AnimalAICustom.app
 
 # Linux Custom
 mkdir ./env_linux_v1.0.0_custom
@@ -12,9 +12,8 @@ cp -rf ./CustomAnimalAI-Environment/Builds/AnimalAICustom.x86_64 ./env_linux_v1.
 zip -r env_linux_v1.0.0_custom.zip ./env_linux_v1.0.0_custom
 rm -rf ./env_linux_v1.0.0_custom
 
-
-
-
-
-
+# MacOSX Fast
+cp -rf ./CustomAnimalAI-Environment/Builds/AnimalAIFast.app .
+zip -r env_mac_v1.0.0_fast.zip AnimalAIFast.app
+rm -rf ./AnimalAIFast.app
 

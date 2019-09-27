@@ -15,5 +15,7 @@ train/debug_data
 train/saved*
 train/run.sh
 
+unity/*.zip
+
 *.DS_Store
 
