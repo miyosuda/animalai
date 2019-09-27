@@ -411,21 +411,23 @@ def main():
     
     args = parser.parse_args()
     
-    model_path          = './models/run_005/Learner'
-    #model_path          = './models/run_023/Learner'
-    arena_config_path   = './configs/3-Obstacles.yaml'
+    #model_path          = './models/run_005/Learner'
+    model_path          = './models/run_506/Learner'
+    #arena_config_path   = './configs/3-Obstacles.yaml'
     #arena_config_path   = './configs/1-Food.yaml'
+    #arena_config_path   = './configs/1-Food.yaml'
+    arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
 
     if args.custom:
         # Using custom environment for pos/angle visualization
         env_path = '../env/AnimalAICustom'
     else:
-        #env_path = '../../env/AnimalAI'
-        env_path = '../env/AnimalAIFast'
+        env_path = '../env/AnimalAI'
+        #env_path = '../env/AnimalAIFast'
         #env_path = '../../../AnimalAI-Olympics-inf-mnky/env/AnimalAI'
     
-    trainer_config_path = './configs/trainer_config.yaml'
-    #trainer_config_path = './configs/trainer_config_rec.yaml'
+    #trainer_config_path = './configs/trainer_config.yaml'
+    trainer_config_path = './configs/trainer_config_rec.yaml'
     
     recording = args.recording
     display_size = (900, 528)
