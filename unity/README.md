@@ -1,4 +1,4 @@
-# AnimalAI カステム Unity環境
+# AnimalAI カスタム Unity環境
 
 ## 変更点
 
@@ -37,5 +37,30 @@ Globalの位置(x,y,z)と角度(0〜360)を追加で付加.
 
 `BuildSetting` -> `PlayerSettings` -> `SplashImage` -> `Splash Screen` -> `Show Splash Screen`のチェックを外すことで起動を高速化した.
 (ここはUnity Proのライセンスでのみ設定可能)
+
+
+### RampとCylinderのfix
+
+#### CylinderTunnelの解決方法
+Bldnerをinstallした後、 `Assets/AnimalAIOlympics/SharedAssets/Prefabs/Cylinder.blend` のimport設定で、fixを押してimportを修正
+
+`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/CylinderTunnel.prefab` 
+`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/CylinderTunnelTransparent.prefab` 
+
+の`Mesh`と`MeshCollider`に、`Cylinder`メッシュ (正確にはCylinder.blendの中のCylinderポリゴンメッシュを指定する.
+
+### Rampの解決方法
+
+`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/Ramp.prefab` 
+のTopの`Ramp` GameObjectの下に、`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/Ramp.fbx`を追加する.
+
+追加したGameObjectに、`MeshCollider` Componentを追加し`Convex`プロパティをOnにする. Meshに `Cube`(Ramp.fbxの中のポリゴン) が入っているのを確認する.
+
+追加時にRotaionとScaleの値が自動で設定されてしまうので、Rotationを(0,0,0), Scaleを(1,1,1)にしておく.
+
+リンクの切れている`RampFBX (Missing Prefab)`のGameObjectは念のためdisableにしておく.
+
+
+
 
 
