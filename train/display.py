@@ -367,14 +367,22 @@ class Agent(object):
             brain_info.vector_observations = brain_info.vector_observations[:,:3]
             agent_pos   = extended_infos[:,:3]
             agent_angle = extended_infos[:,3] / 360.0 * (2.0 * np.pi) # 0~2pi
-            return velocity[0], (agent_pos[0], agent_angle[0])
+            
+            target_ids       = extended_infos[:,4:4+5].astype(np.int32)
+            target_distances = extended_infos[:,9:9+5]
+            
+            print("target_ids={}".format(target_ids))
+            print("target_distances={}".format(target_distances))
+            
+            return velocity[0], (agent_pos[0], agent_angle[0]), (target_ids, target_distances)
         else:
-            return velocity[0], None
+            return velocity[0], None, None
 
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
-        velocity, pos_angle = self.fix_brain_info(brain_info) # Custom環境でのみの情報
-        # (3,) (3,) ()
+        out = self.fix_brain_info(brain_info) # Custom環境でのみの情報
+        velocity, pos_angle, target_ids_distances = out
+        # (3,) (3,) (), ()
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
@@ -420,7 +428,8 @@ def main():
 
     if args.custom:
         # Using custom environment for pos/angle visualization
-        env_path = '../env/AnimalAICustom'
+        #env_path = '../env/AnimalAICustom'
+        env_path = '../env/AnimalAIScan'
     else:
         env_path = '../env/AnimalAI'
         #env_path = '../env/AnimalAIFast'
