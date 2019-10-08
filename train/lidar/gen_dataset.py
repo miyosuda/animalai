@@ -156,6 +156,8 @@ TARGET_GOOD_GOAL_MULTI             = 10
 TARGET_HOT_ZONE                    = 11
 TARGET_WALL_OUT                    = 12
 
+TARGET_ID_MAX                      = 13
+
 target_id_tables = {
     0  : TARGET_CYLINDER_TUNNEL, # CylinderTunnel
     1  : TARGET_CYLINDER_TUNNEL_TRANSPARENT, # CylinderTunnelTransparent
