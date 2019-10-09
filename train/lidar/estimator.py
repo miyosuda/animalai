@@ -2,13 +2,13 @@
 import tensorflow as tf
 import numpy as np
 
-from .model import AllocentricModel
-from . import utils
+from lidar.model import LidarModel
+from lidar import utils
 
 
-class AllocentricEstimator(object):
-    def __init__(self, save_dir="saved_allocentric"):
-        self.model = AllocentricModel(seq_length=1, batch_size=1)
+class LidarEstimator(object):
+    def __init__(self, save_dir="saved_lidar"):
+        self.model = LidarModel(seq_length=1, batch_size=1)
         
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
@@ -35,24 +35,20 @@ class AllocentricEstimator(object):
                 self.model.initial_lstm_state[0]:self.lstm_state[0],
                 self.model.initial_lstm_state[1]:self.lstm_state[1]
             })
-        
-        output, lstm_state = self.sess.run(
-            [self.model.output,
+            
+        id_probs, distances, lstm_state = self.sess.run(
+            [self.model.id_prob_output,
+             self.model.distance_output,
              self.model.lstm_state],
             feed_dict=feed_dict,
         )
+        # (1,65) (1,5)
 
-        self.lstm_state = lstm_state
+        id_probs = id_probs.reshape([-1, LidarModel.LIDAR_RAY_SIZE, LidarModel.TARGET_ID_MAX])
+        # (1, 5, 13)
         
-        output_positions        = output[:,:3]
-        output_convreted_angles = output[:,3:]
-
-        output_cos_angles = output_convreted_angles[:,0]
-        output_sin_angles = output_convreted_angles[:,1]
-        output_angles = np.arctan2(output_sin_angles, output_cos_angles)
-
-        output_positions = utils.denormalie_position(output_positions)
-        return output_positions[0], output_angles[0]
+        self.lstm_state = lstm_state
+        return id_probs[0], distances[0]
         
     def reset(self):
         self.lstm_state = None

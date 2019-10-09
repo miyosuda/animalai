@@ -6,7 +6,7 @@ from estimator import AllocentricEstimator
 
 class AllocentricEstimatorTest(unittest.TestCase):
     def test_init(self):
-        estimator = AllocentricEstimator("saved")
+        estimator = AllocentricEstimator("saved_allocentric")
         
         state = np.ones((84, 84, 3), dtype=np.float32)
         last_action = np.array([0,0], dtype=np.int32)

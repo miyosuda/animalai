@@ -11,7 +11,8 @@ class LidarModel(object):
         self.seq_length = seq_length
         
         self.step_size = tf.placeholder(tf.float32, [1])
-        
+
+        # TODO: name scapeの変更！！
         with tf.variable_scope("model", reuse=reuse) as scope:
             self.state_input    = tf.placeholder("float", [None, seq_length, 84, 84, 3])
             self.action_input   = tf.placeholder("float", [None, seq_length, 2])
@@ -90,6 +91,7 @@ class LidarModel(object):
             id_probs = []
             
             for i in range(LidarModel.LIDAR_RAY_SIZE):
+                # TODO: activationはNoneに要修正!!
                 id_logit = tf.layers.dense(fc_out1,
                                            LidarModel.TARGET_ID_MAX,
                                            activation=tf.nn.sigmoid,
@@ -97,7 +99,7 @@ class LidarModel(object):
                 self.id_logits.append(id_logit)
                 id_probs.append(tf.nn.softmax(id_logit))
 
-            self.all_id_probs = tf.concat(id_probs, axis=1, name="all_id_probs")
+            self.id_prob_output = tf.concat(id_probs, axis=1, name="all_id_probs")
 
             self.distance_output = tf.layers.dense(
                 fc_out1,
@@ -106,6 +108,7 @@ class LidarModel(object):
                 name="fc_distance")
             
     def prepare_loss(self):
+        # TODO: name scapeの変更！！
         with tf.variable_scope("loss") as scope:
             self.id_input       = tf.placeholder(tf.int32, [None,
                                                             self.seq_length,

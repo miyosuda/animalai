@@ -17,6 +17,9 @@ from animalai.envs.brain import BrainParameters
 from trainers.ppo.policy import PPOPolicy
 
 
+from lidar.utils import convert_target_ids, get_target_names
+
+
 BLUE  = (128, 128, 255)
 RED   = (255, 192, 192)
 BLACK = (0, 0, 0)
@@ -65,7 +68,13 @@ class ValueHistory(object):
 
 
 class Display(object):
-    def __init__(self, display_size, agent, env, estimator, integrator):
+    def __init__(self,
+                 display_size,
+                 agent,
+                 env,
+                 allo_estimator,
+                 ego_integrator,
+                 lidar_estimator):
         pygame.init()
         self.surface = pygame.display.set_mode(display_size, 0, 24)
         pygame.display.set_caption('AnimalAI')
@@ -73,8 +82,9 @@ class Display(object):
 
         self.agent = agent
         self.env = env
-        self.estimator = estimator
-        self.integrator = integrator
+        self.allo_estimator = allo_estimator
+        self.ego_integrator = ego_integrator
+        self.lidar_estimator = lidar_estimator
 
         self.font = pygame.font.SysFont(None, 20)
         
@@ -214,6 +224,12 @@ class Display(object):
         pygame.draw.line(self.surface, GRAY, (left, top), (right, top), 1)
         pygame.draw.line(self.surface, GRAY, (left, bottom), (right, bottom), 1)
 
+    def show_target(self, target_ids, target_distances, top=300, left=150):
+        """ show lidar target info """
+        target_names = get_target_names(target_ids)
+        for i, target_name in enumerate(target_names):
+            self.draw_text(target_name, left, top + i * 20)
+
     def show_reward(self):
         self.draw_right_text("Current Reward: ", 900-512-8-8-50, 8)
         self.draw_right_text("{:.5f}".format(self.episode_reward), 900-512-8-8, 8)
@@ -221,7 +237,8 @@ class Display(object):
         self.draw_right_text("{:.5f}".format(self.last_episode_reward), 900-512-8-8, 8+16)
         if self.num_episode > 0:
             self.draw_right_text("Average Reward: ", 900-512-8-8-50, 8+16+16)
-            self.draw_right_text("{:.5f}".format(self.total_episode_reward / self.num_episode), 900-512-8-8, 8+16+16)
+            self.draw_right_text("{:.5f}".format(
+                self.total_episode_reward / self.num_episode), 900-512-8-8, 8+16+16)
         self.draw_right_text("Number of Episodes: ", 900-512-8-8-50, 8+16+16+16)
         self.draw_right_text("{}".format(self.num_episode), 900-512-8-8, 8+16+16+16)
 
@@ -255,10 +272,10 @@ class Display(object):
             # 初回のstate生成
             self.last_action = np.array([[0,0]], dtype=np.int32)
             self.obs, self.reward, self.done, self.info = self.env.step(self.last_action)
-            if self.estimator is not None:
-                self.estimator.reset()
-            if self.integrator is not None:
-                self.integrator.reset()
+            if self.allo_estimator is not None:
+                self.allo_estimator.reset()
+            if self.ego_integrator is not None:
+                self.ego_integrator.reset()
             debug_has_reset = True
 
         last_state = self.obs[0] # dtype=float64
@@ -267,28 +284,42 @@ class Display(object):
         # last_actionを取った結果がobs.
         # velocityはobs(=last_state)になる前のlocal velocity.
         # pos_angleはobs(=last_staet)の状態の絶対座標と絶対角度
-        action, log_probs, value, entropy, velocity, pos_angle = self.agent.step(self.obs,
-                                                                                 self.reward,
-                                                                                 self.done,
-                                                                                 self.info)
+        out = self.agent.step(self.obs,
+                              self.reward,
+                              self.done,
+                              self.info)
+        action, log_probs, value, entropy, velocity, pos_angle, target_ids_distances = out
         
-        if debug_has_reset and pos_angle is not None and self.integrator is not None:
+        if debug_has_reset and pos_angle is not None and self.ego_integrator is not None:
             # 今回リセットが起こったので、リセット時の絶対位置角度をデバッグ用に記録
-            self.integrator.debug_set_reset_pos_angle(pos_angle[0], pos_angle[1])
+            self.ego_integrator.debug_set_reset_pos_angle(pos_angle[0], pos_angle[1])
             
-        if self.integrator is not None:
+        if self.ego_integrator is not None:
             if pos_angle is not None:
-                self.integrator.debug_confirm(velocity, pos_angle[0], pos_angle[1])
-            self.integrator.integrate(self.last_action, velocity)
+                self.ego_integrator.debug_confirm(velocity, pos_angle[0], pos_angle[1])
+            self.ego_integrator.integrate(self.last_action, velocity)
             # ここでの相対角度はobs(last_state), およびpos_angleの内容に相当.
             if pos_angle is not None:
-                debug_integated_pos_angle = self.integrator.debug_integrated_absolute_pos_angle
+                debug_integated_pos_angle = self.ego_integrator.debug_integrated_absolute_pos_angle
                 self.show_agent_pos_angle(debug_integated_pos_angle,
                                           top=410, left=250+20)
 
-        if self.estimator is not None:
-            estimated_pos_angle = self.estimator.estimate(last_state, self.last_action, velocity)
+        if self.allo_estimator is not None:
+            estimated_pos_angle = self.allo_estimator.estimate(last_state,
+                                                               self.last_action,
+                                                               velocity)
             self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)
+            
+        if self.lidar_estimator is not None:
+            out = self.lidar_estimator.estimate(last_state,
+                                                self.last_action,
+                                                velocity)
+            estimated_target_id_probs = out[0]
+            estimated_target_distances = out[1]
+            # ArgMaxで最大の確率をとるtarget idを取ってきている
+            estimated_target_ids = np.argmax(estimated_target_id_probs, axis=1)
+            self.show_target(estimated_target_ids, estimated_target_distances,
+                             top=300, left=150)
 
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
@@ -314,16 +345,22 @@ class Display(object):
             self.last_action = action
         
         self.show_image(state)
-        self.show_policy(pi0, 10, 150, "PI (F<->B)")
-        self.show_policy(pi1, 10, 250, "PI (R<->L)")
+        
+        self.show_policy(pi0, 10, 120, "PI (F<->B)")
+        self.show_policy(pi1, 10, 220, "PI (R<->L)")
+        
         self.show_value()
         self.show_reward()
         self.show_velocity(velocity)
 
         if pos_angle is not None:
-            self.show_agent_pos_angle(pos_angle, top=300, left=150)
+            self.show_agent_pos_angle(pos_angle, top=410, left=30)
 
-
+        if target_ids_distances is not None:
+            self.show_target(target_ids_distances[0], target_ids_distances[1],
+                             top=300, left=10)
+            
+            
 class Agent(object):
     def __init__(self,
                  trainer_config_path,
@@ -368,13 +405,14 @@ class Agent(object):
             agent_pos   = extended_infos[:,:3]
             agent_angle = extended_infos[:,3] / 360.0 * (2.0 * np.pi) # 0~2pi
             
-            target_ids       = extended_infos[:,4:4+5].astype(np.int32)
+            raw_target_ids   = extended_infos[:,4:4+5].astype(np.int32)
             target_distances = extended_infos[:,9:9+5]
-            
-            print("target_ids={}".format(target_ids))
-            print("target_distances={}".format(target_distances))
-            
-            return velocity[0], (agent_pos[0], agent_angle[0]), (target_ids, target_distances)
+
+            # 共通するオブジェクトのIDをまとめる
+            target_ids = convert_target_ids(raw_target_ids[0])
+
+            return velocity[0], (agent_pos[0], agent_angle[0]), \
+                (target_ids, target_distances[0])
         else:
             return velocity[0], None, None
 
@@ -382,14 +420,14 @@ class Agent(object):
         brain_info = info['brain_info']
         out = self.fix_brain_info(brain_info) # Custom環境でのみの情報
         velocity, pos_angle, target_ids_distances = out
-        # (3,) (3,) (), ()
+        # (3,)
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
         log_probs = out['log_probs']
         value     = out['value']
         entropy   = out['entropy']
-        return action, log_probs, value, entropy, velocity, pos_angle
+        return action, log_probs, value, entropy, velocity, pos_angle, target_ids_distances
 
 
 def init_agent(trainer_config_path, model_path):
@@ -414,28 +452,21 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=100)
     parser.add_argument("--recording", type=strtobool, default="false")
-    parser.add_argument("--custom", type=strtobool, default="false")
+    parser.add_argument("--custom", type=strtobool, default="true")
     parser.add_argument("--allo", type=strtobool, default="false")
+    parser.add_argument("--lidar", type=strtobool, default="true")
     
     args = parser.parse_args()
     
-    #model_path          = './models/run_005/Learner'
     model_path          = './models/run_506/Learner'
-    #arena_config_path   = './configs/3-Obstacles.yaml'
-    #arena_config_path   = './configs/1-Food.yaml'
-    #arena_config_path   = './configs/1-Food.yaml'
     arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
 
     if args.custom:
         # Using custom environment for pos/angle visualization
-        #env_path = '../env/AnimalAICustom'
         env_path = '../env/AnimalAIScan'
     else:
         env_path = '../env/AnimalAI'
-        #env_path = '../env/AnimalAIFast'
-        #env_path = '../../../AnimalAI-Olympics-inf-mnky/env/AnimalAI'
     
-    #trainer_config_path = './configs/trainer_config.yaml'
     trainer_config_path = './configs/trainer_config_rec.yaml'
     
     recording = args.recording
@@ -447,14 +478,21 @@ def main():
     if args.allo:
         from allocentric.estimator import AllocentricEstimator
         from allocentric.integrator import EgocentricIntegrator
-        allo_model_dir = "saved"
-        estimator = AllocentricEstimator(allo_model_dir)
-        integrator = EgocentricIntegrator()
+        allo_model_dir = "saved_allocentric"
+        allo_estimator = AllocentricEstimator(allo_model_dir)
+        ego_integrator = EgocentricIntegrator()
     else:
-        estimator = None
-        integrator = None
+        allo_estimator = None
+        ego_integrator = None
 
-    display = Display(display_size, agent, env, estimator, integrator)
+    if args.lidar:
+        from lidar.estimator import LidarEstimator
+        lidar_model_dir = "saved_lidar"
+        lidar_estimator = LidarEstimator(lidar_model_dir)
+    else:
+        lidar_estimator = None
+
+    display = Display(display_size, agent, env, allo_estimator, ego_integrator, lidar_estimator)
     clock = pygame.time.Clock()
 
     running = True
