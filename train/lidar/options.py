@@ -11,7 +11,7 @@ def get_options():
                                "checkpoints,log,options save directory")
     tf.app.flags.DEFINE_float("learning_rate", 1e-4, "learning rate")
     tf.app.flags.DEFINE_integer("steps", 10 * (10**5), "training steps")
-    tf.app.flags.DEFINE_integer("save_interval", 5000, "saving interval")
+    tf.app.flags.DEFINE_integer("save_interval", 10000, "saving interval")
     tf.app.flags.DEFINE_integer("test_interval", 10000, "test interval")
     tf.app.flags.DEFINE_integer("batch_size", 10, "batch size")
     tf.app.flags.DEFINE_boolean("training", True, "whether to train or not")

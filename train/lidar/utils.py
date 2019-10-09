@@ -4,8 +4,8 @@ import tensorflow as tf
 import os
 
 
-def load_checkpoints(sess, save_dir):
-    saver = tf.train.Saver(max_to_keep=2)
+def load_checkpoints(sess, save_dir, max_to_keep=2):
+    saver = tf.train.Saver(max_to_keep=max_to_keep)
     checkpoint_dir = save_dir + "/checkpoints"
 
     checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)

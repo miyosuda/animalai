@@ -54,7 +54,10 @@ def main(argv):
     summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
 
     # Load checkpoints
-    saver, start_step = utils.load_checkpoints(sess, flags.save_dir)
+    max_to_keep = 0
+    saver, start_step = utils.load_checkpoints(sess,
+                                               flags.save_dir,
+                                               max_to_keep=max_to_keep)
 
     train(sess, trainer, saver, summary_writer, start_step)
 
