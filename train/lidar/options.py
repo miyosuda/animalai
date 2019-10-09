@@ -10,6 +10,7 @@ def get_options():
     tf.app.flags.DEFINE_string("save_dir", "saved",
                                "checkpoints,log,options save directory")
     tf.app.flags.DEFINE_float("learning_rate", 1e-4, "learning rate")
+    tf.app.flags.DEFINE_float("weight_decay", 0.01, "weight decay")
     tf.app.flags.DEFINE_integer("steps", 10 * (10**5), "training steps")
     tf.app.flags.DEFINE_integer("save_interval", 10000, "saving interval")
     tf.app.flags.DEFINE_integer("test_interval", 10000, "test interval")
