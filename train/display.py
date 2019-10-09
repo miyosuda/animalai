@@ -229,6 +229,12 @@ class Display(object):
         target_names = get_target_names(target_ids)
         for i, target_name in enumerate(target_names):
             self.draw_text(target_name, left, top + i * 20)
+            target_distance = target_distances[i]
+            y = top + 15 + 20 * i
+            distance_scale = 4.0
+            right = left + target_distance * distance_scale
+            pygame.draw.line(self.surface, WHITE, (left, y), (right, y), 1)
+
 
     def show_reward(self):
         self.draw_right_text("Current Reward: ", 900-512-8-8-50, 8)
