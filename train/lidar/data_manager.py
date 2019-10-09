@@ -31,9 +31,7 @@ class DataManager(object):
         # Get data dimensions
         total_data_size, self.seq_length, self.w, self.h, self.ch = data_states.shape
 
-        # TDOO:
-        #self.train_data_size = 6500
-        self.train_data_size = 30
+        self.train_data_size = 6700
         self.test_data_size  = total_data_size - self.train_data_size
 
         # State (uint8)
