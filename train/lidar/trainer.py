@@ -16,11 +16,12 @@ class Trainer(object):
         states, actions, velocities, positions, angles, rewards, target_ids, target_distances = batch_data
         
         # (batch_size, seq_length, 5)
-        
         out = sess.run(
             [
                 self.train_op,
                 self.model.loss,
+                self.model.id_loss,
+                self.model.distance_loss
             ],
             feed_dict={
                 self.model.state_input: states,
@@ -29,10 +30,12 @@ class Trainer(object):
                 self.model.id_input: target_ids,
                 self.model.distance_input: target_distances,
             })
-        _, loss = out
+        _, loss, id_loss, distance_loss = out
 
         if step % 10 == 0:
-            self.record_loss(summary_writer, "train_loss", loss, step)
+            self.record_loss(summary_writer, "train/loss", loss, step)
+            self.record_loss(summary_writer, "train/id_loss", id_loss, step)
+            self.record_loss(summary_writer, "train/distance_loss", distance_loss, step)
 
     def record_loss(self, summary_writer, tag, value, step):
         summary_str = tf.Summary(
@@ -42,6 +45,8 @@ class Trainer(object):
     def test(self, sess, summary_writer, batch_size, step):
         test_data_size = self.data_manager.test_data_size
         all_losses = []
+        all_id_losses = []
+        all_distance_losses = []
 
         # 端数が出た時の対処
         test_data_size = (test_data_size // batch_size) * batch_size
@@ -53,8 +58,10 @@ class Trainer(object):
             # (batch_size, seq_length, 5)
 
             # Not updating state because it is initialized with every batch.
-            loss = sess.run(
-                self.model.loss,
+            out = sess.run(
+                [self.model.loss,
+                 self.model.id_loss,
+                 self.model.distance_loss],
                 feed_dict={
                     self.model.state_input: states,
                     self.model.action_input: actions,
@@ -62,10 +69,17 @@ class Trainer(object):
                     self.model.id_input: target_ids,
                     self.model.distance_input: target_distances,
                 })
+            loss, id_loss, distance_loss = out
             all_losses.append(loss)
+            all_id_losses.append(id_loss)
+            all_distance_losses.append(distance_loss)
 
         mean_loss = np.mean(all_losses, axis=0)
+        mean_id_loss = np.mean(all_id_losses, axis=0)
+        mean_distance_loss = np.mean(all_distance_losses, axis=0)
         
         # Record summary
-        self.record_loss(summary_writer, "test_loss", mean_loss, step)
+        self.record_loss(summary_writer, "test/loss", mean_loss, step)
+        self.record_loss(summary_writer, "test/id_loss", mean_id_loss, step)
+        self.record_loss(summary_writer, "test/distance_loss", mean_distance_loss, step)
         print("test loss={0:.2f}".format(mean_loss))
