@@ -7,12 +7,17 @@ class LidarModel(object):
     TARGET_ID_MAX = 13
     LIDAR_RAY_SIZE = 5
     
-    def __init__(self, seq_length, batch_size, reuse=False):
+    def __init__(self, seq_length, batch_size, weight_decay=0.0, reuse=False):
         self.seq_length = seq_length
         
         self.step_size = tf.placeholder(tf.float32, [1])
 
         with tf.variable_scope("lidar_model", reuse=reuse) as scope:
+            if weight_decay != 0.0:
+                regularizer = tf.contrib.layers.l2_regularizer(scale=weight_decay)
+            else:
+                regularizer = None
+            
             self.state_input    = tf.placeholder("float", [None, seq_length, 84, 84, 3])
             self.action_input   = tf.placeholder("float", [None, seq_length, 2])
             self.velocity_input = tf.placeholder("float", [None, seq_length, 3])
@@ -28,6 +33,7 @@ class LidarModel(object):
                                      strides=(2, 2),
                                      padding="same",
                                      activation=tf.nn.relu,
+                                     kernel_regularizer=regularizer,
                                      name="conv1")
             
             conv2 = tf.layers.conv2d(conv1,
@@ -36,6 +42,7 @@ class LidarModel(object):
                                      strides=(2, 2),
                                      padding="same",
                                      activation=tf.nn.relu,
+                                     kernel_regularizer=regularizer,
                                      name="conv2")
             # (-1, 21, 21, 32)
             conv3 = tf.layers.conv2d(conv2,
@@ -44,6 +51,7 @@ class LidarModel(object):
                                      strides=(2, 2),
                                      padding="same",
                                      activation=tf.nn.relu,
+                                     kernel_regularizer=regularizer,
                                      name="conv3")
             # (-1, 11, 11, 32)
             
@@ -53,6 +61,7 @@ class LidarModel(object):
             fc1 = tf.layers.dense(conv3_flat,
                                   256,
                                   activation=tf.nn.relu,
+                                  kernel_regularizer=regularizer,
                                   name="fc1")
                 
             lstm_input = tf.concat([fc1, action_input_reshaped, velocity_input_reshaped], 1)
@@ -85,6 +94,7 @@ class LidarModel(object):
             fc_out1 = tf.layers.dense(lstm_outputs,
                                       256,
                                       activation=tf.nn.relu,
+                                      kernel_regularizer=regularizer,
                                       name="fc_out1")
             self.id_logits = []
             id_probs = []
@@ -93,6 +103,7 @@ class LidarModel(object):
                 id_logit = tf.layers.dense(fc_out1,
                                            LidarModel.TARGET_ID_MAX,
                                            activation=None,
+                                           kernel_regularizer=regularizer,
                                            name="fc_id_logit{}".format(i))
                 self.id_logits.append(id_logit)
                 id_probs.append(tf.nn.softmax(id_logit))
@@ -103,6 +114,7 @@ class LidarModel(object):
                 fc_out1,
                 LidarModel.LIDAR_RAY_SIZE,
                 activation=None,
+                kernel_regularizer=regularizer,
                 name="fc_distance")
             
     def prepare_loss(self):

@@ -38,8 +38,9 @@ def main(argv):
     batch_size = flags.batch_size
     data_manager = DataManager()
     seq_length = data_manager.seq_length
+    weight_decay = flags.weight_decay
 
-    model = LidarModel(seq_length, batch_size)
+    model = LidarModel(seq_length, batch_size, weight_decay=weight_decay)
     model.prepare_loss()
     
     trainer = Trainer(data_manager,
