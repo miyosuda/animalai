@@ -465,7 +465,8 @@ def main():
     args = parser.parse_args()
     
     model_path          = './models/run_506/Learner'
-    arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
+    #arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
+    arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo.yaml'
 
     if args.custom:
         # Using custom environment for pos/angle visualization
