@@ -31,13 +31,14 @@ class DataManager(object):
         # Get data dimensions
         total_data_size, self.seq_length, self.w, self.h, self.ch = data_states.shape
 
-        self.train_data_size = 6700
+        # 400個をtestに回す
+        self.train_data_size = (total_data_size - 400) // 100 * 100
         self.test_data_size  = total_data_size - self.train_data_size
 
         # State (uint8)
         self.raw_train_states, self.raw_test_states = self.split_train_test_data(
             data_states, self.train_data_size)
-        # (1200, 20, 64, 64, 3), # (200, 20, 64, 64, 3)
+        # (***, 20, 64, 64, 3), # (***, 20, 64, 64, 3)
 
         # Actions
         self.train_actions, self.test_actions = self.split_train_test_data(
