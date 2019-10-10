@@ -1,0 +1,1374 @@
+!ArenaConfig
+arenas:
+  0: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  1: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  2: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  3: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  4: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  5: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  6: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  7: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  8: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  9: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  10: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  11: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  12: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  13: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  14: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  15: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  16: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  17: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  18: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  19: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  20: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  21: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  22: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+  23: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  24: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  25: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  26: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  27: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  28: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  29: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  30: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}
+  31: !Arena
+    t: 1000
+    items:
+    - !Item
+      name: GoodGoal
+    - !Item
+      name: GoodGoalMulti
+    - !Item
+      name: BadGoal
+    - !Item
+      name: DeathZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: HotZone
+      sizes:
+      - !Vector3 {x: 5, y: 0, z: 5}
+    - !Item
+      name: LObject2
+    - !Item
+      name: LObject
+    - !Item
+      name: UObject
+    - !Item
+      name: Cardbox2
+    - !Item
+      name: Cardbox1
+    - !Item
+      name: CylinderTunnelTransparent
+    - !Item
+      name: WallTransparent
+    - !Item
+      name: CylinderTunnel
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Wall
+      colors:
+      - !RGB {r: 153, g: 153, b: 153}
+    - !Item
+      name: Ramp
+      colors:
+      - !RGB {r: 255, g: 0, b: 255}

@@ -75,7 +75,7 @@ class Agent(object):
 
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
-        out = self.fix_brain_info(brain_info) # Custom環境でのみの情報        
+        out = self.fix_brain_info(brain_info) # Custom環境でのみの情報
         velocity, pos_angle, target_ids_distances = out
         # (3,) (3,) (), ()
         
@@ -307,13 +307,13 @@ def main():
     parser.add_argument("--step_size",
                         help="Training step size",
                         type=int,
-                        default=150000)
+                        default=300000) # 以前は150000
     args = parser.parse_args()
 
     step_size = args.step_size
     
     model_path          = './models/run_lidar0/Leaner/'
-    arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo.yaml'
+    arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
     trainer_config_path = './configs/lidar/trainer_config_lidar.yaml'
     env_path            = '../env/AnimalAIScan'
 
