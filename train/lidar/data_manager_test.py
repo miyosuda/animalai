@@ -110,8 +110,8 @@ class DataManagerTest(unittest.TestCase):
     def test_init(self):
         seq_length = 20
         
-        train_data_size = 6700
-        test_data_size = 506
+        train_data_size = 14000
+        test_data_size = 477
 
         # 共通のテスト
         data_manager = DataManager()
