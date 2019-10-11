@@ -13,10 +13,7 @@ class LidarModel(object):
         self.step_size = tf.placeholder(tf.float32, [1])
 
         with tf.variable_scope("lidar_model", reuse=reuse) as scope:
-            if weight_decay != 0.0:
-                regularizer = tf.contrib.layers.l2_regularizer(scale=weight_decay)
-            else:
-                regularizer = None
+            regularizer = tf.contrib.layers.l2_regularizer(scale=weight_decay)
             
             self.state_input    = tf.placeholder("float", [None, seq_length, 84, 84, 3])
             self.action_input   = tf.placeholder("float", [None, seq_length, 2])
@@ -146,5 +143,6 @@ class LidarModel(object):
                                                  [-1, LidarModel.LIDAR_RAY_SIZE])
             self.distance_loss = tf.nn.l2_loss(distance_input_reshaped - self.distance_output)
             # ここはreduce_sumされてスカラーになっている
-            
-            self.loss = self.id_loss + self.distance_loss
+
+            reg_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+            self.loss = self.id_loss + self.distance_loss + reg_loss

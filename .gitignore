@@ -11,8 +11,8 @@ train/UnitySDK.log
 train/base_data
 train/data
 train/debug_data
-train/lidar_base_data
-train/lidar_data
+train/lidar_base_data*
+train/lidar_data*
 
 train/saved*
 train/run.sh
