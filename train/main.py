@@ -3,7 +3,8 @@ from animalai.envs import UnityEnvironment
 from animalai.envs.exception import UnityEnvironmentException
 from animalai.envs.arena_config import ArenaConfig
 
-from trainers.trainer_controller import TrainerController
+#from trainers.trainer_controller import TrainerController
+from trainers.trainer_controller2 import TrainerController
 
 import random
 import yaml
@@ -11,7 +12,7 @@ import sys
 
 
 # ML-agents parameters for training
-run_id           = 'run_005'
+run_id           = 'run_999'
 sub_id           = 1
 seed             = 1
 run_seed         = 2
@@ -32,6 +33,7 @@ model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
 
 n_arenas         = 16
+#n_arenas         = 1
 arena_config_path= 'configs/3-Obstacles.yaml'
 
 
