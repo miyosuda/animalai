@@ -25,6 +25,8 @@ from animalai.envs.arena_config import ArenaConfig
 
 from trainers.ppo.trainer import PPOTrainer
 
+from lidar.estimator import MultiLidarEstimator
+
 
 ENABLE_VISITED_MAP_IMAGE = True
 DEBUG_SHOW_VISITED_MAP = False
@@ -88,6 +90,7 @@ class TrainerController(object):
         tf.set_random_seed(self.seed)
         
         if ENABLE_VISITED_MAP_IMAGE:
+            self.lidar_estimators = None
             self.extra_brain_infos = {}
             for brain_name in self.external_brain_names:
                 self.external_brains[brain_name] = self._add_extra_camera_parameter(
@@ -178,12 +181,25 @@ class TrainerController(object):
             new_info = env.reset()
         
         if ENABLE_VISITED_MAP_IMAGE:
+            if self.lidar_estimators is None:
+                # Create LIDAR estimator
+                self.lidar_estimators = {}
+                for brain_name in self.trainers.keys():
+                    brain_info = new_info[brain_name]
+                    n_arenas = len(brain_info.rewards)
+                    self.lidar_estimators[brain_name] = MultiLidarEstimator(
+                        save_dir="saved_lidar", # TODO: データパスの指定
+                        n_arenas=n_arenas
+                    )
             self.extra_brain_infos = {}
             for brain_name in self.trainers.keys():
                 self.extra_brain_infos[brain_name] = ExtraBrainInfo() # delete old ExtraBrainInfo
-                out = self._expand_brain_info(new_info[brain_name],
+                out = self._expand_brain_info(self.lidar_estimators[brain_name],
+                                              new_info[brain_name],
                                               self.extra_brain_infos[brain_name])
                 new_info[brain_name], self.extra_brain_infos[brain_name] = out
+                self.lidar_estimators[brain_name].reset()
+                
         return new_info
 
     def start_learning(self, env, trainer_config):
@@ -262,14 +278,12 @@ class TrainerController(object):
         
         if ENABLE_VISITED_MAP_IMAGE:
             for brain_name in self.trainers.keys():
-                new_info[brain_name], self.extra_brain_infos[brain_name] = \
-                self._expand_brain_info(new_info[brain_name], \
-                self.extra_brain_infos[brain_name])
-        
-        for brain_name in self.trainers.keys():
-            # Modify rewards according to the touched objects.
-            self._modify_brain_info(new_info[brain_name])
-        
+                lidar_estimator = self.lidar_estimators[brain_name]
+                out = self._expand_brain_info(lidar_estimator,
+                                              new_info[brain_name],
+                                              self.extra_brain_infos[brain_name])
+                new_info[brain_name], self.extra_brain_infos[brain_name] = out
+                
         for brain_name, trainer in self.trainers.items():
             # ExperienceBufferに貯める
             trainer.add_experiences(curr_info, new_info, take_action_outputs[brain_name])
@@ -286,102 +300,8 @@ class TrainerController(object):
                 trainer.increment_step_and_update_last_reward()
         return new_info
 
-
-    class TouchedObject(Enum):
-        NONE = auto()
-        GREEN = auto()
-        YELLOW = auto()
-        RED = auto()
-        DEATHZONE = auto()
-        HOTZONE = auto()
-        UNKNOWN = auto()
-
-    def _get_t(self, arena_id=0):
-        config = self.config
-        return config.arenas[arena_id].t
-
-    def _detect_touched_object(self, reward, local_done):
-        """
-        Detect touched object.
-        According to this page, https://www.mdcrosby.com/blog/animalaieval.html
-        maximum episode steps (T) should be 250, 500 or 1000.
-        The agent always get -1/T reward for each steps or zero if T=0.
-        If the agent doesn't touch anything, he get -1/T reward for each step.
-        If the agent is on HOTZONE, he get extra -10/T reward, so total reward should be -11/T for each step.
-        If the agent touch DEATHZONE, he get extra -1 reward, so total reward should be -1 + -1/T. And epidode should terminate (local_done is True).
-        If the agent touch RED, he get extra [-5, -0.5] reward, so total reward should be [-5, -0.5] + -1/T. And epidode should terminate (local_done is True).
-        """
-        eps = 1e-6 # for small fluctuation.
-        t = self._get_t() # TODO: each arenas could have different t values.
-        min_neg_reward = -1.0 / t - eps if t > 0 else -eps # -1/T
-        
-        if reward <= 0.0 and reward >= min_neg_reward: # [-1/T, 0]
-            return self.TouchedObject.NONE
-        elif reward <= 0.0 and reward >= min_neg_reward*11.0: # [-11/T, 0]
-            return self.TouchedObject.HOTZONE
-        elif reward <= 0.0 and not local_done:
-            # TODO: HOTZONE reward should not be less than -11/T but sometimes it exceeds. Or it may be an another object.
-            # Anyway, I treat this as HOTZONE temporarily.
-            #self.logger.info('maybe HOTZONE {}, {}'.format(reward, local_done))
-            #return self.TouchedObject.UNKNOWN
-            return self.TouchedObject.HOTZONE
-        elif reward <= 0.0 and local_done and (reward <= -1.0 and reward >= min_neg_reward-1.0): # [-1 + -1/T, -1]
-            # It could be RED with -1 radius.
-            return self.TouchedObject.DEATHZONE
-        elif reward <= 0.0 and local_done:
-            return self.TouchedObject.RED
-        elif reward > 0.0 and not local_done:
-            return self.TouchedObject.YELLOW
-        elif reward > 0.0 and local_done:
-            # It could be YELLOW if there's no GREEN in the arena and it's last YELLOW.
-            return self.TouchedObject.GREEN
-        else:
-            return self.TouchedObject.UNKNOWN
-
-    def _modify_brain_info(self, brain_info):
-        """
-        modify rewards according to this page.
-        https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Best-Practices.md#rewards
-        """
-        assert len(brain_info.rewards) == len(brain_info.local_done)
-        t = self._get_t() # TODO: each arenas could have different t values.
-        min_pos_reward = 1.0 / t if t > 0 else 0.0 # 1/T
-        modified_rewards = []
-        
-        for reward, local_done, vector_observation, previous_vector_action in zip(brain_info.rewards,
-                                                                                  brain_info.local_done,
-                                                                                  brain_info.vector_observations,
-                                                                                  brain_info.previous_vector_actions):
-            new_reward = reward
-            touched = self._detect_touched_object(reward, local_done)
-            #if touched is not self.TouchedObject.NONE:
-            #    self.logger.info('touched: {}, {}, {}'.format(touched, local_done, reward))
-            assert touched is not self.TouchedObject.UNKNOWN
-            # TODO: tweak amount
-            if touched is self.TouchedObject.GREEN:
-                new_reward = 1.0
-            elif touched is self.TouchedObject.YELLOW:
-                new_reward = 2.0
-            elif touched is self.TouchedObject.RED:
-                new_reward = -0.5
-            elif touched is self.TouchedObject.DEATHZONE:
-                new_reward = -0.5
-            elif touched is self.TouchedObject.HOTZONE:
-                new_reward = reward * 0.5
-            else:
-                new_reward = reward # no change
-            # Add small positive extra reward for forward velocity.
-            if vector_observation[2] > 0.0:
-                new_reward += min_pos_reward
-            #if vector_observation[2] == 0.0 and previous_vector_action[0] == 1:
-            #    self.logger.info('{}, {}'.format(vector_observation, previous_vector_action))
-            modified_rewards.append(new_reward)
-        assert len(modified_rewards) == len(brain_info.rewards)
-        #if brain_info.rewards != modified_rewards:
-        #    self.logger.info('original rewards: {}, modified rewards: {}'.format(brain_info.rewards, modified_rewards))
-        brain_info.rewards = modified_rewards
-
     def _add_extra_camera_parameter(self, brain_info_parameter):
+        # 初回のカメラ追加情報の処理
         modified = copy.copy(brain_info_parameter)
         modified.number_visual_observations += 1
         extra_camera_parameters = {
@@ -394,23 +314,37 @@ class TrainerController(object):
 
     VELOCITY_CONSTANT = 0.0595
 
-    def _expand_brain_info(self, brain_info, extra_brain_info):
+    def _expand_brain_info(self, lidar_estimator, brain_info, extra_brain_info):
         n_arenas = len(brain_info.rewards)
         if n_arenas != len(extra_brain_info.local_angles):
             extra_brain_info.local_angles = [ 0 for _ in range(n_arenas) ]
-            extra_brain_info.local_positions = [ np.zeros((3), dtype=np.float) for _ in range(n_arenas) ]
+            extra_brain_info.local_positions = [
+                np.zeros((3), dtype=np.float) for _ in range(n_arenas) ]
             extra_brain_info.local_histories = [ [] for _ in range(n_arenas) ]
-        new_local_angles = []
+
+        # LIDAR target ID and distance estimation
+        all_lidar_id_probs, all_lidar_distances = lidar_estimator.estimate(brain_info)
+        # (n_arenas, 5, 13)   (n_arenas, 5)
+
+        # 全Arena分用意する
+        new_local_angles    = []
         new_local_positions = []
         new_local_histories = []
-        visited_map_images = []
-        for reward, local_done, vector_observation, previous_vector_action, local_angle, local_position, local_history in zip(brain_info.rewards,
-                                                                                                                              brain_info.local_done,
-                                                                                                                              brain_info.vector_observations,
-                                                                                                                              brain_info.previous_vector_actions,
-                                                                                                                              extra_brain_info.local_angles,
-                                                                                                                              extra_brain_info.local_positions,
-                                                                                                                              extra_brain_info.local_histories):
+        visited_map_images  = []
+        
+        for reward, local_done, vector_observation, previous_vector_action, \
+            local_angle, local_position, local_history, lidar_id_probs, lidar_distances in zip(
+                brain_info.rewards,
+                brain_info.local_done,
+                brain_info.vector_observations,
+                brain_info.previous_vector_actions,
+                extra_brain_info.local_angles,
+                extra_brain_info.local_positions,
+                extra_brain_info.local_histories,
+                all_lidar_id_probs,
+                all_lidar_distances
+            ):
+            # 各Arenaごとに関するループ
             if local_done:
                 new_local_angle = 0
                 new_local_position = np.zeros((3), dtype=np.float)
@@ -423,18 +357,26 @@ class TrainerController(object):
                 else:
                     new_local_angle = local_angle % 360
                 rot = self._rotate_array(vector_observation, new_local_angle)
-                new_local_position = local_position + self.VELOCITY_CONSTANT * np.array(rot, dtype=np.float)
+                new_local_position = local_position + \
+                                     self.VELOCITY_CONSTANT * np.array(rot, dtype=np.float)
                 new_local_history = local_history + [new_local_position] # TODO
             new_local_angles.append(new_local_angle)
             new_local_positions.append(new_local_position)
             new_local_histories.append(new_local_history)
+            
             visited_map_image = self._generate_visited_map_image(new_local_angle,
                                                                  new_local_position,
-                                                                 new_local_history)
+                                                                 new_local_history,
+                                                                 lidar_id_probs,
+                                                                 lidar_distances)
+            # (84,84,1)
             visited_map_images.append(visited_map_image)
-        extra_brain_info.local_angles = new_local_angles
+            
+        extra_brain_info.local_angles    = new_local_angles
         extra_brain_info.local_positions = new_local_positions
         extra_brain_info.local_histories = new_local_histories
+
+        # ここでvisited mapを学習用に追加反映
         brain_info.visual_observations.append(np.array(visited_map_images, dtype=np.float))
 
         if DEBUG_SHOW_VISITED_MAP:
@@ -450,22 +392,30 @@ class TrainerController(object):
         
         return brain_info, extra_brain_info
 
-    def _generate_visited_map_image(self, local_angle, local_position, local_history):
+    def _generate_visited_map_image(self, local_angle, local_position, local_history,
+                                    lidar_id_probs, lidar_distances):
+        # TODO: lidar_id_probs, lidar_distancesの反映
+        #print("id_probs={}".format(lidar_id_probs))
+        #print("distances={}".format(lidar_distances))
+        
         local_position = np.array(local_position, dtype=np.float)
-        local_history = np.array(local_history, dtype=np.float)
+        local_history  = np.array(local_history,  dtype=np.float)
         #shifted_local_history = local_history # fixed position for debug
         shifted_local_history = local_history - local_position
         rotated_local_history = []
+        
         for pos in shifted_local_history: # TODO: use numpy
             rot = self._rotate_array(pos, -local_angle) # minus!
             #rotated_local_history.append(pos) # no rotation for debug
             rotated_local_history.append(rot)
+            
         visited_map_image = np.zeros((84, 84, 1), dtype=np.float)
         min_pos = -40.0 * np.sqrt(2.0)
         max_pos =  40.0 * np.sqrt(2.0)
+        
         for pos in rotated_local_history:
             x, y, z = pos
-            sx = int(84.0 * (x - min_pos) / (max_pos - min_pos))
+            sx = int(84.0 * ( x - min_pos) / (max_pos - min_pos))
             sy = int(84.0 * (-z - min_pos) / (max_pos - min_pos)) # minus z!
             assert 0 <= sx and sx < 84 and 0 <= sy and sy < 84
             #self.logger.info('{}, {}, {}, {}'.format(x, z, sx, sy))
@@ -483,6 +433,6 @@ class TrainerController(object):
 
 class ExtraBrainInfo:
     def __init__(self):
-        self.local_angles = []
+        self.local_angles    = []
         self.local_positions = []
         self.local_histories = []

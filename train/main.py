@@ -33,7 +33,6 @@ model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
 
 n_arenas         = 16
-#n_arenas         = 1
 arena_config_path= 'configs/3-Obstacles.yaml'
 
 

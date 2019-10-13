@@ -332,6 +332,15 @@ class Display(object):
         # obs:[2], obs[0]:(84,84,3)   obs[1]:(3,)　デバッグ時は(7,)
         # reward: float
         # done: bool
+
+        """
+        print("vector_observations={}".format(
+            self.info['brain_info'].vector_observations))
+        print("previous_vector_actions={}".format(
+            self.info['brain_info'].previous_vector_actions))
+        print("local_done={}".format(
+            self.info['brain_info'].local_done))
+        """
         
         state = self.obs[0] # float64
         
@@ -433,6 +442,7 @@ class Agent(object):
         log_probs = out['log_probs']
         value     = out['value']
         entropy   = out['entropy']
+
         return action, log_probs, value, entropy, velocity, pos_angle, target_ids_distances
 
 
