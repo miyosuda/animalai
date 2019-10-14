@@ -26,6 +26,7 @@ from animalai.envs.arena_config import ArenaConfig
 from trainers.ppo.trainer import PPOTrainer
 
 from lidar.estimator import MultiLidarEstimator
+from trainers.visited_map import VisitedMap
 
 
 ENABLE_VISITED_MAP_IMAGE = True
@@ -93,7 +94,7 @@ class TrainerController(object):
             self.lidar_estimators = None
             self.extra_brain_infos = {}
             for brain_name in self.external_brain_names:
-                self.external_brains[brain_name] = self._add_extra_camera_parameter(
+                self.external_brains[brain_name] = add_extra_camera_parameter(
                     self.external_brains[brain_name])
                 self.extra_brain_infos[brain_name] = ExtraBrainInfo()
 
@@ -194,9 +195,9 @@ class TrainerController(object):
             self.extra_brain_infos = {}
             for brain_name in self.trainers.keys():
                 self.extra_brain_infos[brain_name] = ExtraBrainInfo() # delete old ExtraBrainInfo
-                out = self._expand_brain_info(self.lidar_estimators[brain_name],
-                                              new_info[brain_name],
-                                              self.extra_brain_infos[brain_name])
+                out = expand_brain_info(new_info[brain_name],
+                                        self.extra_brain_infos[brain_name],
+                                        self.lidar_estimators[brain_name])
                 new_info[brain_name], self.extra_brain_infos[brain_name] = out
                 self.lidar_estimators[brain_name].reset()
                 
@@ -279,9 +280,9 @@ class TrainerController(object):
         if ENABLE_VISITED_MAP_IMAGE:
             for brain_name in self.trainers.keys():
                 lidar_estimator = self.lidar_estimators[brain_name]
-                out = self._expand_brain_info(lidar_estimator,
-                                              new_info[brain_name],
-                                              self.extra_brain_infos[brain_name])
+                out = expand_brain_info(new_info[brain_name],
+                                        self.extra_brain_infos[brain_name],
+                                        lidar_estimator)
                 new_info[brain_name], self.extra_brain_infos[brain_name] = out
                 
         for brain_name, trainer in self.trainers.items():
@@ -300,139 +301,56 @@ class TrainerController(object):
                 trainer.increment_step_and_update_last_reward()
         return new_info
 
-    def _add_extra_camera_parameter(self, brain_info_parameter):
-        # 初回のカメラ追加情報の処理
-        modified = copy.copy(brain_info_parameter)
-        modified.number_visual_observations += 1
-        extra_camera_parameters = {
-            'height': 84,
-            'width': 84,
-            'blackAndWhite': True
-        }
-        modified.camera_resolutions.append(extra_camera_parameters)
-        return modified
+def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
+    n_arenas = len(brain_info.rewards)
+    if n_arenas != len(extra_brain_info.visited_maps):
+        extra_brain_info.visited_maps = [ VisitedMap() for _ in range(n_arenas) ]
 
-    VELOCITY_CONSTANT = 0.0595
+    # Estimate LIDAR target IDs and distances for all arenas at once.
+    all_lidar_id_probs, all_lidar_distances = lidar_estimator.estimate(brain_info)
+    # (n_arenas, 5, 13)   (n_arenas, 5)
+    
+    visited_map_images = []
+    
+    for reward, local_done, vector_observation, previous_vector_action, \
+        visited_map, lidar_id_probs, lidar_distances in zip(
+            brain_info.rewards,
+            brain_info.local_done,
+            brain_info.vector_observations,
+            brain_info.previous_vector_actions,
+            extra_brain_info.visited_maps,
+            all_lidar_id_probs,
+            all_lidar_distances):
 
-    def _expand_brain_info(self, lidar_estimator, brain_info, extra_brain_info):
-        n_arenas = len(brain_info.rewards)
-        if n_arenas != len(extra_brain_info.local_angles):
-            extra_brain_info.local_angles = [ 0 for _ in range(n_arenas) ]
-            extra_brain_info.local_positions = [
-                np.zeros((3), dtype=np.float) for _ in range(n_arenas) ]
-            extra_brain_info.local_histories = [ [] for _ in range(n_arenas) ]
-
-        # LIDAR target ID and distance estimation
-        all_lidar_id_probs, all_lidar_distances = lidar_estimator.estimate(brain_info)
-        # (n_arenas, 5, 13)   (n_arenas, 5)
-
-        # 全Arena分用意する
-        new_local_angles    = []
-        new_local_positions = []
-        new_local_histories = []
-        visited_map_images  = []
+        visited_map.add_visited_info(local_done,
+                                     previous_vector_action,
+                                     vector_observation,
+                                     lidar_id_probs,
+                                     lidar_distances)
+        visited_map_image = visited_map.get_image()
+        visited_map_images.append(visited_map_image)
         
-        for reward, local_done, vector_observation, previous_vector_action, \
-            local_angle, local_position, local_history, lidar_id_probs, lidar_distances in zip(
-                brain_info.rewards,
-                brain_info.local_done,
-                brain_info.vector_observations,
-                brain_info.previous_vector_actions,
-                extra_brain_info.local_angles,
-                extra_brain_info.local_positions,
-                extra_brain_info.local_histories,
-                all_lidar_id_probs,
-                all_lidar_distances
-            ):
-            # 各Arenaごとに関するループ
-            if local_done:
-                new_local_angle = 0
-                new_local_position = np.zeros((3), dtype=np.float)
-                new_local_history = [new_local_position]
-            else:
-                if previous_vector_action[1] == 1: # turn right
-                    new_local_angle = (local_angle + 6) % 360
-                elif previous_vector_action[1] == 2: # turn left
-                    new_local_angle = (local_angle - 6) % 360
-                else:
-                    new_local_angle = local_angle % 360
-                rot = self._rotate_array(vector_observation, new_local_angle)
-                new_local_position = local_position + \
-                                     self.VELOCITY_CONSTANT * np.array(rot, dtype=np.float)
-                new_local_history = local_history + [new_local_position] # TODO
-            new_local_angles.append(new_local_angle)
-            new_local_positions.append(new_local_position)
-            new_local_histories.append(new_local_history)
-            
-            visited_map_image = self._generate_visited_map_image(new_local_angle,
-                                                                 new_local_position,
-                                                                 new_local_history,
-                                                                 lidar_id_probs,
-                                                                 lidar_distances)
-            # (84,84,1)
-            visited_map_images.append(visited_map_image)
-            
-        extra_brain_info.local_angles    = new_local_angles
-        extra_brain_info.local_positions = new_local_positions
-        extra_brain_info.local_histories = new_local_histories
+    brain_info.visual_observations.append(np.array(visited_map_images, dtype=np.float))
+    #self.logger.info('{}, {}, {}'.format(brain_info.max_reached[0],
+    #                                     brain_info.local_done[0],
+    #                                     brain_info.rewards[0]))
+    #cv2.imshow('visited map', visited_map_images[0])
+    #cv2.waitKey(1)
+    return brain_info, extra_brain_info
 
-        # ここでvisited mapを学習用に追加反映
-        brain_info.visual_observations.append(np.array(visited_map_images, dtype=np.float))
 
-        if DEBUG_SHOW_VISITED_MAP:
-            self.logger.info('{}, {}, {}, {}, {}, {}'.format(
-                brain_info.max_reached[0],
-                brain_info.local_done[0],
-                brain_info.rewards[0],
-                extra_brain_info.local_angles[0],
-                extra_brain_info.local_positions[0],
-                len(extra_brain_info.local_histories[0])))
-            cv2.imshow('visited map', visited_map_images[0])
-            cv2.waitKey(1)
-        
-        return brain_info, extra_brain_info
+def add_extra_camera_parameter(brain_info_parameter):
+    modified = copy.copy(brain_info_parameter)
+    modified.number_visual_observations += 1
+    extra_camera_parameters = {
+        'height': 84,
+        'width': 84,
+        'blackAndWhite': True
+    }
+    modified.camera_resolutions.append(extra_camera_parameters)
+    return modified
 
-    def _generate_visited_map_image(self, local_angle, local_position, local_history,
-                                    lidar_id_probs, lidar_distances):
-        # TODO: lidar_id_probs, lidar_distancesの反映
-        #print("id_probs={}".format(lidar_id_probs))
-        #print("distances={}".format(lidar_distances))
-        
-        local_position = np.array(local_position, dtype=np.float)
-        local_history  = np.array(local_history,  dtype=np.float)
-        #shifted_local_history = local_history # fixed position for debug
-        shifted_local_history = local_history - local_position
-        rotated_local_history = []
-        
-        for pos in shifted_local_history: # TODO: use numpy
-            rot = self._rotate_array(pos, -local_angle) # minus!
-            #rotated_local_history.append(pos) # no rotation for debug
-            rotated_local_history.append(rot)
-            
-        visited_map_image = np.zeros((84, 84, 1), dtype=np.float)
-        min_pos = -40.0 * np.sqrt(2.0)
-        max_pos =  40.0 * np.sqrt(2.0)
-        
-        for pos in rotated_local_history:
-            x, y, z = pos
-            sx = int(84.0 * ( x - min_pos) / (max_pos - min_pos))
-            sy = int(84.0 * (-z - min_pos) / (max_pos - min_pos)) # minus z!
-            assert 0 <= sx and sx < 84 and 0 <= sy and sy < 84
-            #self.logger.info('{}, {}, {}, {}'.format(x, z, sx, sy))
-            # TODO: confirm sy,sx or sx,sy
-            visited_map_image[sy,sx] = [1.0] # TODO: frequency?
-        return visited_map_image
-
-    def _rotate_array(self, pos, angle):
-        sin_angle = np.sin(2.0 * np.pi * float(angle) / 360.0)
-        cos_angle = np.cos(2.0 * np.pi * float(angle) / 360.0)
-        dx = cos_angle * pos[0] + sin_angle * pos[2]
-        dy = pos[1]
-        dz = -sin_angle * pos[0] + cos_angle * pos[2]
-        return [dx, dy, dz]
 
 class ExtraBrainInfo:
     def __init__(self):
-        self.local_angles    = []
-        self.local_positions = []
-        self.local_histories = []
+        self.visited_maps = []        
