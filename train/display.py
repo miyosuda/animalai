@@ -15,6 +15,7 @@ from animalai.envs.arena_config import ArenaConfig
 from animalai.envs.brain import BrainParameters
 
 from trainers.ppo.policy import PPOPolicy
+from trainers.visited_map import VisitedMap
 
 
 from lidar.utils import convert_target_ids, get_target_names
@@ -85,6 +86,7 @@ class Display(object):
         self.allo_estimator = allo_estimator
         self.ego_integrator = ego_integrator
         self.lidar_estimator = lidar_estimator
+        self.visited_map = VisitedMap()
 
         self.font = pygame.font.SysFont(None, 20)
         
@@ -151,6 +153,48 @@ class Display(object):
         self.draw_center_text("input", 50, 100)
         image8 = pygame.transform.scale(image, (512, 512))
         self.surface.blit(image8, (900-512-8, 8))
+
+    def show_visited_map(self, visited_map, local_map_image):
+        """
+        Show visited map
+        """
+        top = 8
+        left = 8+100
+        width = 84
+        height = 84
+        bottom = top + width
+        right = left + height
+        
+        data = (visited_map * 127.0).astype(np.uint8)
+        data = data.repeat(3, axis=2)
+        image = pygame.image.frombuffer(data, (84, 84), 'RGB')
+        self.surface.blit(image, (left, top))
+        self.draw_center_text("map", left+42, top+92)
+
+        local_left = left+84+4
+        local_right = local_left + 40
+        local_top = top
+        local_bottom = top + 40
+
+        local_data = (local_map_image * 127.0).astype(np.uint8)
+        local_data = local_data[:,:,np.newaxis]
+        local_data = local_data.repeat(3, axis=2)
+        image = pygame.image.frombuffer(local_data, (40, 40), 'RGB')
+        self.surface.blit(image, (local_left, local_top))
+
+        pygame.draw.line(self.surface, WHITE, (left, top), (left, bottom), 1)
+        pygame.draw.line(self.surface, WHITE, (right, top), (right, bottom), 1)
+        pygame.draw.line(self.surface, WHITE, (left, top), (right, top), 1)
+        pygame.draw.line(self.surface, WHITE, (left, bottom), (right, bottom), 1)
+
+        pygame.draw.line(self.surface, WHITE, 
+                         (local_left, local_top), (local_left, local_bottom), 1)
+        pygame.draw.line(self.surface, WHITE, 
+                         (local_right, local_top), (local_right, local_bottom), 1)
+        pygame.draw.line(self.surface, WHITE,
+                         (local_left, local_top), (local_right, local_top), 1)
+        pygame.draw.line(self.surface, WHITE,
+                         (local_left, local_bottom), (local_right, local_bottom), 1)
 
     def show_value(self):
         if self.value_history.is_empty:
@@ -237,15 +281,15 @@ class Display(object):
 
 
     def show_reward(self):
-        self.draw_right_text("Current Reward: ", 900-512-8-8-50, 8)
+        self.draw_right_text("Cur Rwd: ", 900-512-8-8-50, 8)
         self.draw_right_text("{:.5f}".format(self.episode_reward), 900-512-8-8, 8)
-        self.draw_right_text("Last Reward: ", 900-512-8-8-50, 8+16)
+        self.draw_right_text("Lst Rwd: ", 900-512-8-8-50, 8+16)
         self.draw_right_text("{:.5f}".format(self.last_episode_reward), 900-512-8-8, 8+16)
         if self.num_episode > 0:
-            self.draw_right_text("Average Reward: ", 900-512-8-8-50, 8+16+16)
+            self.draw_right_text("Avg Rwd: ", 900-512-8-8-50, 8+16+16)
             self.draw_right_text("{:.5f}".format(
                 self.total_episode_reward / self.num_episode), 900-512-8-8, 8+16+16)
-        self.draw_right_text("Number of Episodes: ", 900-512-8-8-50, 8+16+16+16)
+        self.draw_right_text("Num of Ep: ", 900-512-8-8-50, 8+16+16+16)
         self.draw_right_text("{}".format(self.num_episode), 900-512-8-8, 8+16+16+16)
 
     def show_velocity(self, velocity):
@@ -326,6 +370,18 @@ class Display(object):
             estimated_target_ids = np.argmax(estimated_target_id_probs, axis=1)
             self.show_target(estimated_target_ids, estimated_target_distances,
                              top=300, left=150)
+
+            brain_info = self.info['brain_info']
+            
+            self.visited_map.add_visited_info(
+                brain_info.local_done[0],
+                brain_info.previous_vector_actions[0],
+                brain_info.vector_observations[0],
+                estimated_target_id_probs,
+                estimated_target_distances)
+            map_image = self.visited_map.get_image()
+            local_map_image = self.visited_map.get_local_map_image()
+            self.show_visited_map(map_image, local_map_image)
 
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
