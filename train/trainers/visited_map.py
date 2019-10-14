@@ -126,7 +126,7 @@ class VisitedMap:
         
         scale = 2.0 # 40x40の画像を何倍するか
         M = cv2.getRotationMatrix2D(center=(self.GRID_DIVISION//2, self.GRID_DIVISION//2),
-                                    angle=-self.last_local_angle,
+                                    angle=self.last_local_angle,
                                     scale=scale)
         # 画像の1pixelが、2.0*sqrt(2)/scaleの距離になっている.
         
@@ -145,7 +145,7 @@ class VisitedMap:
         local_pos_pix_z = self.last_local_position[2] / pos_rate
 
         shift_lp = self.rotate_array([-local_pos_pix_x, 0.0, local_pos_pix_z],
-                                     -self.last_local_angle)
+                                     self.last_local_angle)
 
         #print("last_pos={}".format(self.last_local_position)) #..
         #print("shift_lp={}".format(shift_lp)) #..
