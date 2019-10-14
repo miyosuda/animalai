@@ -8,7 +8,7 @@ import logging
 import shutil
 import sys
 import copy
-from enum import Enum, auto
+from enum import Enum
 if sys.platform.startswith('win'):
     import win32api
     import win32con
