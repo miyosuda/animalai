@@ -154,7 +154,11 @@ class Display(object):
         image8 = pygame.transform.scale(image, (512, 512))
         self.surface.blit(image8, (900-512-8, 8))
 
-    def show_visited_map(self, visited_map, local_map_image):
+    def show_visited_map(self,
+                         visited_map,
+                         local_map_image,
+                         local_position,
+                         local_angle):
         """
         Show visited map
         """
@@ -171,30 +175,53 @@ class Display(object):
         self.surface.blit(image, (left, top))
         self.draw_center_text("map", left+42, top+92)
 
+        # local mapを何倍して表示するか
+        local_map_scale = 2
+        local_map_org_w = local_map_image.shape[0]
+        local_map_org_h = local_map_image.shape[1]
+        
+        local_map_w = local_map_org_w * local_map_scale
+        local_map_h = local_map_org_h * local_map_scale
+        
         local_left = left+84+4
-        local_right = local_left + 40
+        local_right = local_left + local_map_w
         local_top = top
-        local_bottom = top + 40
+        local_bottom = top + local_map_h
 
         local_data = (local_map_image * 127.0).astype(np.uint8)
         local_data = local_data[:,:,np.newaxis]
         local_data = local_data.repeat(3, axis=2)
-        image = pygame.image.frombuffer(local_data, (40, 40), 'RGB')
+        image = pygame.image.frombuffer(local_data, (local_map_org_h, local_map_org_w), 'RGB')
+        image = pygame.transform.scale(image, (local_map_h, local_map_w))
+        
         self.surface.blit(image, (local_left, local_top))
 
-        pygame.draw.line(self.surface, WHITE, (left, top), (left, bottom), 1)
-        pygame.draw.line(self.surface, WHITE, (right, top), (right, bottom), 1)
-        pygame.draw.line(self.surface, WHITE, (left, top), (right, top), 1)
-        pygame.draw.line(self.surface, WHITE, (left, bottom), (right, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (left, top), (left, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (right, top), (right, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (left, top), (right, top), 1)
+        pygame.draw.line(self.surface, GRAY, (left, bottom), (right, bottom), 1)
 
-        pygame.draw.line(self.surface, WHITE, 
+        pygame.draw.line(self.surface, GRAY, 
                          (local_left, local_top), (local_left, local_bottom), 1)
-        pygame.draw.line(self.surface, WHITE, 
+        pygame.draw.line(self.surface, GRAY, 
                          (local_right, local_top), (local_right, local_bottom), 1)
-        pygame.draw.line(self.surface, WHITE,
+        pygame.draw.line(self.surface, GRAY,
                          (local_left, local_top), (local_right, local_top), 1)
-        pygame.draw.line(self.surface, WHITE,
+        pygame.draw.line(self.surface, GRAY,
                          (local_left, local_bottom), (local_right, local_bottom), 1)
+        
+        # local_pos, angleの表示
+        converted_local_pos = ((local_position / VisitedMap.RANGE_MAX) + 1.0) * 0.5 * local_map_w
+        converted_local_pos_x = int(converted_local_pos[0])
+        converted_local_pos_z = int(converted_local_pos[2])
+
+        center = (local_left + converted_local_pos_x,
+                  local_top + local_map_h - converted_local_pos_z)
+
+        vx = np.sin(local_angle / 360.0 * np.pi * 2.0) * 8
+        vz = np.cos(local_angle / 360.0 * np.pi * 2.0) * 8
+        pygame.draw.line(self.surface, RED, center, (center[0]+vx, center[1]-vz), 2)
+        
 
     def show_value(self):
         if self.value_history.is_empty:
@@ -279,7 +306,6 @@ class Display(object):
             right = left + target_distance * distance_scale
             pygame.draw.line(self.surface, WHITE, (left, y), (right, y), 1)
 
-
     def show_reward(self):
         self.draw_right_text("Cur Rwd: ", 900-512-8-8-50, 8)
         self.draw_right_text("{:.5f}".format(self.episode_reward), 900-512-8-8, 8)
@@ -289,7 +315,7 @@ class Display(object):
             self.draw_right_text("Avg Rwd: ", 900-512-8-8-50, 8+16+16)
             self.draw_right_text("{:.5f}".format(
                 self.total_episode_reward / self.num_episode), 900-512-8-8, 8+16+16)
-        self.draw_right_text("Num of Ep: ", 900-512-8-8-50, 8+16+16+16)
+        self.draw_right_text("Ep Num: ", 900-512-8-8-50, 8+16+16+16)
         self.draw_right_text("{}".format(self.num_episode), 900-512-8-8, 8+16+16+16)
 
     def show_velocity(self, velocity):
@@ -320,6 +346,7 @@ class Display(object):
         
         if self.obs == None:
             # 初回のstate生成
+            self.visited_map.reset()
             self.last_action = np.array([[0,0]], dtype=np.int32)
             self.obs, self.reward, self.done, self.info = self.env.step(self.last_action)
             if self.allo_estimator is not None:
@@ -381,7 +408,9 @@ class Display(object):
                 estimated_target_distances)
             map_image = self.visited_map.get_image()
             local_map_image = self.visited_map.get_local_map_image()
-            self.show_visited_map(map_image, local_map_image)
+            self.show_visited_map(map_image, local_map_image,
+                                  self.visited_map.last_local_position,
+                                  self.visited_map.last_local_angle)
 
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)

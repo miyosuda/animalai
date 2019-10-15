@@ -9,6 +9,7 @@ VELOCITY_CONSTANT = 0.0595
 
 class VisitedMap:
     GRID_DIVISION = 40
+    #GRID_DIVISION = 30
     TARGET_ID_MAX = 13
     RANGE_MAX =  40.0 * np.sqrt(2.0)
     RANGE_MIN = -40.0 * np.sqrt(2.0)
@@ -152,10 +153,13 @@ class VisitedMap:
 
         M[0,2] += shift_lp[0]
         M[1,2] += shift_lp[2]
-        
+
+        interpolation = cv2.INTER_NEAREST
+        #interpolation = cv2.INTER_LINEAR
         image = cv2.warpAffine(src=local_map,
                                M=M,
-                               dsize=(84,84))
+                               dsize=(84,84),
+                               flags=interpolation)
         image = image.reshape([84,84,1])
         return image
 
