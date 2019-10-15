@@ -6,7 +6,7 @@ Learner:
     epsilon: 0.2
     gamma: 0.99
     lambd: 0.95
-    learning_rate: 3.0e-4
+    learning_rate: 3.0e-5
     memory_size: 256
     normalize: false
     sequence_length: 64

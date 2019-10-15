@@ -12,7 +12,7 @@ import sys
 
 
 # ML-agents parameters for training
-run_id           = 'run_040'
+run_id           = 'run_042'
 sub_id           = 1
 seed             = 1
 run_seed         = 2
@@ -28,7 +28,6 @@ train_model      = True
 lesson           = 0
 
 docker_target_name = None
-#trainer_config_path = 'configs/trainer_config.yaml'
 trainer_config_path = 'configs/trainer_config_rec.yaml'
 model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
