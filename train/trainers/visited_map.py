@@ -153,10 +153,13 @@ class VisitedMap:
 
         M[0,2] += shift_lp[0]
         M[1,2] += shift_lp[2]
-        
+
+        interpolation = cv2.INTER_NEAREST
+        #interpolation = cv2.INTER_LINEAR
         image = cv2.warpAffine(src=local_map,
                                M=M,
-                               dsize=(84,84))
+                               dsize=(84,84),
+                               flags=interpolation)
         image = image.reshape([84,84,1])
         return image
 
