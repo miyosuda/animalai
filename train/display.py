@@ -171,29 +171,39 @@ class Display(object):
         self.surface.blit(image, (left, top))
         self.draw_center_text("map", left+42, top+92)
 
+        # local mapを何倍して表示するか
+        local_map_scale = 2
+        local_map_org_w = local_map_image.shape[0]
+        local_map_org_h = local_map_image.shape[1]
+        
+        local_map_w = local_map_org_w * local_map_scale
+        local_map_h = local_map_org_h * local_map_scale
+        
         local_left = left+84+4
-        local_right = local_left + 40
+        local_right = local_left + local_map_w
         local_top = top
-        local_bottom = top + 40
+        local_bottom = top + local_map_h
 
         local_data = (local_map_image * 127.0).astype(np.uint8)
         local_data = local_data[:,:,np.newaxis]
         local_data = local_data.repeat(3, axis=2)
-        image = pygame.image.frombuffer(local_data, (40, 40), 'RGB')
+        image = pygame.image.frombuffer(local_data, (local_map_org_h, local_map_org_w), 'RGB')
+        image = pygame.transform.scale(image, (local_map_h, local_map_w))
+        
         self.surface.blit(image, (local_left, local_top))
 
-        pygame.draw.line(self.surface, WHITE, (left, top), (left, bottom), 1)
-        pygame.draw.line(self.surface, WHITE, (right, top), (right, bottom), 1)
-        pygame.draw.line(self.surface, WHITE, (left, top), (right, top), 1)
-        pygame.draw.line(self.surface, WHITE, (left, bottom), (right, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (left, top), (left, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (right, top), (right, bottom), 1)
+        pygame.draw.line(self.surface, GRAY, (left, top), (right, top), 1)
+        pygame.draw.line(self.surface, GRAY, (left, bottom), (right, bottom), 1)
 
-        pygame.draw.line(self.surface, WHITE, 
+        pygame.draw.line(self.surface, GRAY, 
                          (local_left, local_top), (local_left, local_bottom), 1)
-        pygame.draw.line(self.surface, WHITE, 
+        pygame.draw.line(self.surface, GRAY, 
                          (local_right, local_top), (local_right, local_bottom), 1)
-        pygame.draw.line(self.surface, WHITE,
+        pygame.draw.line(self.surface, GRAY,
                          (local_left, local_top), (local_right, local_top), 1)
-        pygame.draw.line(self.surface, WHITE,
+        pygame.draw.line(self.surface, GRAY,
                          (local_left, local_bottom), (local_right, local_bottom), 1)
 
     def show_value(self):
@@ -279,7 +289,6 @@ class Display(object):
             right = left + target_distance * distance_scale
             pygame.draw.line(self.surface, WHITE, (left, y), (right, y), 1)
 
-
     def show_reward(self):
         self.draw_right_text("Cur Rwd: ", 900-512-8-8-50, 8)
         self.draw_right_text("{:.5f}".format(self.episode_reward), 900-512-8-8, 8)
@@ -289,7 +298,7 @@ class Display(object):
             self.draw_right_text("Avg Rwd: ", 900-512-8-8-50, 8+16+16)
             self.draw_right_text("{:.5f}".format(
                 self.total_episode_reward / self.num_episode), 900-512-8-8, 8+16+16)
-        self.draw_right_text("Num of Ep: ", 900-512-8-8-50, 8+16+16+16)
+        self.draw_right_text("Ep Num: ", 900-512-8-8-50, 8+16+16+16)
         self.draw_right_text("{}".format(self.num_episode), 900-512-8-8, 8+16+16+16)
 
     def show_velocity(self, velocity):
@@ -320,6 +329,7 @@ class Display(object):
         
         if self.obs == None:
             # 初回のstate生成
+            self.visited_map.reset()
             self.last_action = np.array([[0,0]], dtype=np.int32)
             self.obs, self.reward, self.done, self.info = self.env.step(self.last_action)
             if self.allo_estimator is not None:

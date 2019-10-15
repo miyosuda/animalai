@@ -9,6 +9,7 @@ VELOCITY_CONSTANT = 0.0595
 
 class VisitedMap:
     GRID_DIVISION = 40
+    #GRID_DIVISION = 30
     TARGET_ID_MAX = 13
     RANGE_MAX =  40.0 * np.sqrt(2.0)
     RANGE_MIN = -40.0 * np.sqrt(2.0)
