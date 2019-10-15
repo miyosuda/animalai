@@ -154,7 +154,11 @@ class Display(object):
         image8 = pygame.transform.scale(image, (512, 512))
         self.surface.blit(image8, (900-512-8, 8))
 
-    def show_visited_map(self, visited_map, local_map_image):
+    def show_visited_map(self,
+                         visited_map,
+                         local_map_image,
+                         local_position,
+                         local_angle):
         """
         Show visited map
         """
@@ -205,6 +209,19 @@ class Display(object):
                          (local_left, local_top), (local_right, local_top), 1)
         pygame.draw.line(self.surface, GRAY,
                          (local_left, local_bottom), (local_right, local_bottom), 1)
+        
+        # local_pos, angleの表示
+        converted_local_pos = ((local_position / VisitedMap.RANGE_MAX) + 1.0) * 0.5 * local_map_w
+        converted_local_pos_x = int(converted_local_pos[0])
+        converted_local_pos_z = int(converted_local_pos[2])
+
+        center = (local_left + converted_local_pos_x,
+                  local_top + local_map_h - converted_local_pos_z)
+
+        vx = np.sin(local_angle / 360.0 * np.pi * 2.0) * 8
+        vz = np.cos(local_angle / 360.0 * np.pi * 2.0) * 8
+        pygame.draw.line(self.surface, RED, center, (center[0]+vx, center[1]-vz), 2)
+        
 
     def show_value(self):
         if self.value_history.is_empty:
@@ -391,7 +408,9 @@ class Display(object):
                 estimated_target_distances)
             map_image = self.visited_map.get_image()
             local_map_image = self.visited_map.get_local_map_image()
-            self.show_visited_map(map_image, local_map_image)
+            self.show_visited_map(map_image, local_map_image,
+                                  self.visited_map.last_local_position,
+                                  self.visited_map.last_local_angle)
 
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
