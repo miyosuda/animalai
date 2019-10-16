@@ -309,6 +309,10 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
     # Estimate LIDAR target IDs and distances for all arenas at once.
     all_lidar_id_probs, all_lidar_distances = lidar_estimator.estimate(brain_info)
     # (n_arenas, 5, 13)   (n_arenas, 5)
+
+    # Displayデバッグ表示用
+    extra_brain_info.debug_lidar_id_probs = all_lidar_id_probs
+    extra_brain_info.debug_lidar_distances = all_lidar_distances
     
     visited_map_images = []
     
@@ -353,4 +357,7 @@ def add_extra_camera_parameter(brain_info_parameter):
 
 class ExtraBrainInfo:
     def __init__(self):
-        self.visited_maps = []        
+        self.visited_maps = []
+        # Displayデバッグ表示用
+        self.debug_lidar_id_probs = None
+        self.debug_lidar_distances = None

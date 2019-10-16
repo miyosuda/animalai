@@ -74,8 +74,7 @@ class Display(object):
                  agent,
                  env,
                  allo_estimator,
-                 ego_integrator,
-                 lidar_estimator):
+                 ego_integrator):
         pygame.init()
         self.surface = pygame.display.set_mode(display_size, 0, 24)
         pygame.display.set_caption('AnimalAI')
@@ -85,8 +84,6 @@ class Display(object):
         self.env = env
         self.allo_estimator = allo_estimator
         self.ego_integrator = ego_integrator
-        self.lidar_estimator = lidar_estimator
-        self.visited_map = VisitedMap()
 
         self.font = pygame.font.SysFont(None, 20)
         
@@ -346,7 +343,7 @@ class Display(object):
         
         if self.obs == None:
             # 初回のstate生成
-            self.visited_map.reset()
+            self.agent.reset()
             self.last_action = np.array([[0,0]], dtype=np.int32)
             self.obs, self.reward, self.done, self.info = self.env.step(self.last_action)
             if self.allo_estimator is not None:
@@ -387,46 +384,27 @@ class Display(object):
                                                                velocity)
             self.show_agent_pos_angle(estimated_pos_angle, top=410, left=150)
             
-        if self.lidar_estimator is not None:
-            out = self.lidar_estimator.estimate(last_state,
-                                                self.last_action,
-                                                velocity)
-            estimated_target_id_probs = out[0]
-            estimated_target_distances = out[1]
+        if self.agent.extra_brain_info is not None:
+            estimated_target_id_probs = self.agent.extra_brain_info.debug_lidar_id_probs[0]
+            estimated_target_distances = self.agent.extra_brain_info.debug_lidar_distances[0]
             # ArgMaxで最大の確率をとるtarget idを取ってきている
             estimated_target_ids = np.argmax(estimated_target_id_probs, axis=1)
             self.show_target(estimated_target_ids, estimated_target_distances,
                              top=300, left=150)
-
-            brain_info = self.info['brain_info']
             
-            self.visited_map.add_visited_info(
-                brain_info.local_done[0],
-                brain_info.previous_vector_actions[0],
-                brain_info.vector_observations[0],
-                estimated_target_id_probs,
-                estimated_target_distances)
-            map_image = self.visited_map.get_image()
-            local_map_image = self.visited_map.get_local_map_image()
+            visited_map = self.agent.extra_brain_info.visited_maps[0]
+            map_image = visited_map.get_image()
+            local_map_image = visited_map.get_local_map_image()
             self.show_visited_map(map_image, local_map_image,
-                                  self.visited_map.last_local_position,
-                                  self.visited_map.last_local_angle)
-
+                                  visited_map.last_local_position,
+                                  visited_map.last_local_angle)
+            
         # 環境に対してActionを発行して結果を得る
         self.obs, self.reward, self.done, self.info = self.env.step(action)
         # obs:[2], obs[0]:(84,84,3)   obs[1]:(3,)　デバッグ時は(7,)
         # reward: float
         # done: bool
 
-        """
-        print("vector_observations={}".format(
-            self.info['brain_info'].vector_observations))
-        print("previous_vector_actions={}".format(
-            self.info['brain_info'].previous_vector_actions))
-        print("local_done={}".format(
-            self.info['brain_info'].local_done))
-        """
-        
         state = self.obs[0] # float64
         
         self.episode_reward += self.reward
@@ -459,6 +437,10 @@ class Display(object):
         if target_ids_distances is not None:
             self.show_target(target_ids_distances[0], target_ids_distances[1],
                              top=300, left=10)
+
+
+from trainers.trainer_controller2 import add_extra_camera_parameter, expand_brain_info, ExtraBrainInfo
+from lidar.estimator import MultiLidarEstimator
             
             
 class Agent(object):
@@ -479,6 +461,9 @@ class Agent(object):
             vector_action_space_type      = 0,  # corresponds to discrete
             vector_observation_space_size = 3
         )
+
+        self.brain = add_extra_camera_parameter(self.brain)
+        self.extra_brain_info = ExtraBrainInfo()
         
         self.trainer_params = yaml.load(open(trainer_config_path))['Learner']
         self.trainer_params['keep_checkpoints'] = 0
@@ -489,9 +474,15 @@ class Agent(object):
                                 trainer_params=self.trainer_params,
                                 is_training=False,
                                 load=True)
+        
+        self.lidar_estimator = MultiLidarEstimator(
+            save_dir="saved_lidar", # データパスの指定
+            n_arenas=1
+        )
 
     def reset(self, t=250):
-        pass
+        self.extra_brain_info = ExtraBrainInfo()
+        self.lidar_estimator.reset()
 
     def fix_brain_info(self, brain_info):
         velocity = brain_info.vector_observations[:,:3]
@@ -518,9 +509,14 @@ class Agent(object):
 
     def step(self, obs, reward, done, info):
         brain_info = info['brain_info']
+        
         out = self.fix_brain_info(brain_info) # Custom環境でのみの情報
         velocity, pos_angle, target_ids_distances = out
-        # (3,)
+        # (3,)        
+
+        brain_info, self.extra_brain_info = expand_brain_info(brain_info,
+                                                              self.extra_brain_info,
+                                                              self.lidar_estimator)
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
@@ -559,7 +555,8 @@ def main():
     
     args = parser.parse_args()
     
-    model_path          = './models/run_506/Learner'
+    #model_path          = './models/run_506/Learner'
+    model_path          = './models/run_043/Learner'
     #arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
     arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
 
@@ -586,15 +583,8 @@ def main():
     else:
         allo_estimator = None
         ego_integrator = None
-
-    if args.lidar:
-        from lidar.estimator import LidarEstimator
-        lidar_model_dir = "saved_lidar"
-        lidar_estimator = LidarEstimator(lidar_model_dir)
-    else:
-        lidar_estimator = None
-
-    display = Display(display_size, agent, env, allo_estimator, ego_integrator, lidar_estimator)
+        
+    display = Display(display_size, agent, env, allo_estimator, ego_integrator)
     clock = pygame.time.Clock()
 
     running = True
