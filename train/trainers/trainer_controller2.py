@@ -30,8 +30,7 @@ from trainers.visited_map import VisitedMap
 
 
 ENABLE_VISITED_MAP_IMAGE = True
-DEBUG_SHOW_VISITED_MAP = False
-
+ENABLE_BLIND_TRAINING = True
 
 class TrainerController(object):
     def __init__(self,
@@ -335,6 +334,11 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
         visited_map_images.append(visited_map_image)
         
     brain_info.visual_observations.append(np.array(visited_map_images, dtype=np.float))
+
+    if ENABLE_BLIND_TRAINING:
+        # Visual表示を消して学習をする場合
+        brain_info.visual_observations[0] = np.zeros_like(brain_info.visual_observations[0])
+
     #self.logger.info('{}, {}, {}'.format(brain_info.max_reached[0],
     #                                     brain_info.local_done[0],
     #                                     brain_info.rewards[0]))
