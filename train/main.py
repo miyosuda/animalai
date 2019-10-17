@@ -33,7 +33,10 @@ model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
 
 n_arenas         = 16
-arena_config_path= 'configs/3-Obstacles.yaml'
+#arena_config_path= 'configs/3-Obstacles.yaml'
+arena_config_path= 'configs/1-Food-arena16-t250-r5.yaml'
+
+
 
 
 def load_config(trainer_config_path):
