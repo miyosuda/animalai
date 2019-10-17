@@ -12,7 +12,7 @@ import sys
 
 
 # ML-agents parameters for training
-run_id           = 'run_042'
+run_id           = 'run_102'
 sub_id           = 1
 seed             = 1
 run_seed         = 2

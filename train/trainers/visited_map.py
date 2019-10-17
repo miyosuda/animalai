@@ -117,6 +117,41 @@ class VisitedMap:
         return [dx, dy, dz]
 
     def get_image(self):
+        return self.get_start_pos_angle_centric_map_image()
+        #return self.get_egocentric_map_image()
+
+    def get_start_pos_angle_centric_map_image(self):
+        id_map = self.get_local_map_image(id_only=True)
+        # (30,30)
+        interpolation = cv2.INTER_NEAREST
+        resized_id_map = cv2.resize(id_map, (84,84),
+                                       interpolation=interpolation)
+        # (84,84)
+        visited_map = np.clip(self.visited_grid, 0, 1).astype(np.float32)
+        resized_visited_map = cv2.resize(visited_map, (84,84),
+                                         interpolation=interpolation)
+        
+        # local_pos, angleの表示
+        converted_local_pos = ((self.last_local_position / self.RANGE_MAX) + 1.0) * 0.5 * 84
+        sx = converted_local_pos[0]
+        sz = converted_local_pos[2]
+        vx = np.sin(self.last_local_angle / 360.0 * np.pi * 2.0) * 8
+        vz = np.cos(self.last_local_angle / 360.0 * np.pi * 2.0) * 8
+        ex = sx+vx
+        ez = sz-vz
+        
+        pos_angle_map = np.zeros((84,84), np.float32)
+        pos_angle_map = cv2.line(pos_angle_map,
+                                 (int(sx),int(sz)), (int(ex),int(ez)),
+                                 (1,1,1), 1)
+        pos_angle_map = cv2.circle(pos_angle_map,
+                                   (int(sx),int(sz)), 2,
+                                   (1,1,1), -1)
+        stacked_image = np.stack([resized_id_map, resized_visited_map, pos_angle_map],
+                                 axis=2)
+        return stacked_image
+        
+    def get_egocentric_map_image(self):
         local_map = self.get_local_map_image()
         local_map = local_map.reshape([self.GRID_DIVISION, self.GRID_DIVISION, 1])
         # (40,40,1)
@@ -147,14 +182,10 @@ class VisitedMap:
         shift_lp = self.rotate_array([-local_pos_pix_x, 0.0, local_pos_pix_z],
                                      self.last_local_angle)
 
-        #print("last_pos={}".format(self.last_local_position)) #..
-        #print("shift_lp={}".format(shift_lp)) #..
-
         M[0,2] += shift_lp[0]
         M[1,2] += shift_lp[2]
 
         interpolation = cv2.INTER_NEAREST
-        #interpolation = cv2.INTER_LINEAR
         image = cv2.warpAffine(src=local_map,
                                M=M,
                                dsize=(84,84),
@@ -162,7 +193,7 @@ class VisitedMap:
         image = image.reshape([84,84,1])
         return image
 
-    def get_local_map_image(self):
+    def get_local_map_image(self, id_only=False):
         """
         Get local map (start-pos-angle coordinate)
         map values:
@@ -175,11 +206,12 @@ class VisitedMap:
         grid_extended_id_map = grid_on_map + grid_id_map # 0 if no-count, otherwise 1~13.
         grid_extended_id_map = grid_extended_id_map.astype(np.float32) / self.TARGET_ID_MAX
         # 0.0 ~ 1.0
-        
-        visited_map = np.clip(self.visited_grid, 0, 1) * 2 # 2 if visited, otherwise 0
-        local_map = np.clip(grid_extended_id_map + visited_map.astype(np.float32), 0.0, 2.0)
-        #local_map = np.clip(visited_map.astype(np.float32), 0.0, 2.0) # 行ったとこのみを表示する場合
-        
+
+        if id_only:
+            local_map = grid_extended_id_map
+        else:
+            visited_map = np.clip(self.visited_grid, 0, 1) * 2 # 2 if visited, otherwise 0
+            local_map = np.clip(grid_extended_id_map + visited_map.astype(np.float32), 0.0, 2.0)
         # 行った場所: 2.0
         # LIDAR未スキャン範囲: 0.0
         # LIDARスキャン範囲: 1/13~13/13(=1.0)の間を1/13区切りで、ターゲットのID毎に値を入れる.

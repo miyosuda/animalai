@@ -167,7 +167,7 @@ class Display(object):
         right = left + height
         
         data = (visited_map * 127.0).astype(np.uint8)
-        data = data.repeat(3, axis=2)
+        #data = data.repeat(3, axis=2)
         image = pygame.image.frombuffer(data, (84, 84), 'RGB')
         self.surface.blit(image, (left, top))
         self.draw_center_text("map", left+42, top+92)
@@ -442,7 +442,7 @@ class Display(object):
 from trainers.trainer_controller2 import add_extra_camera_parameter, expand_brain_info, ExtraBrainInfo
 from lidar.estimator import MultiLidarEstimator
             
-            
+
 class Agent(object):
     def __init__(self,
                  trainer_config_path,

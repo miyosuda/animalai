@@ -353,7 +353,8 @@ def add_extra_camera_parameter(brain_info_parameter):
     extra_camera_parameters = {
         'height': 84,
         'width': 84,
-        'blackAndWhite': True
+        #'blackAndWhite': True
+        'blackAndWhite': False
     }
     modified.camera_resolutions.append(extra_camera_parameters)
     return modified
