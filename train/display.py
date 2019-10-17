@@ -556,10 +556,12 @@ def main():
     args = parser.parse_args()
     
     #model_path          = './models/run_506/Learner'
-    model_path          = './models/run_043/Learner'
+    #model_path          = './models/run_043/Learner'
+    model_path          = './models/run_102/Learner'
     #arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
-    arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
-    #arena_config_path   = './configs/1-Food-arena16-t250-r5.yaml'
+    #arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
+    #arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
+    arena_config_path   = './configs/1-Food-arena16-t250-r5.yaml'
 
     if args.custom:
         # Using custom environment for pos/angle visualization

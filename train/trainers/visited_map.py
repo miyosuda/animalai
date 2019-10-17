@@ -133,21 +133,22 @@ class VisitedMap:
         
         # local_pos, angleの表示
         converted_local_pos = ((self.last_local_position / self.RANGE_MAX) + 1.0) * 0.5 * 84
-        sx = converted_local_pos[0]
-        sz = converted_local_pos[2]
-        vx = np.sin(self.last_local_angle / 360.0 * np.pi * 2.0) * 8
-        vz = np.cos(self.last_local_angle / 360.0 * np.pi * 2.0) * 8
+        sx =      converted_local_pos[0]
+        sz = 84.0-converted_local_pos[2]
+        vx = np.sin(self.last_local_angle / 360.0 * np.pi * 2.0) * 10
+        vz = np.cos(self.last_local_angle / 360.0 * np.pi * 2.0) * 10
         ex = sx+vx
         ez = sz-vz
         
         pos_angle_map = np.zeros((84,84), np.float32)
         pos_angle_map = cv2.line(pos_angle_map,
-                                 (int(sx),int(sz)), (int(ex),int(ez)),
+                                 (int(sx), int(sz)),
+                                 (int(ex), int(ez)),
                                  (1,1,1), 1)
         pos_angle_map = cv2.circle(pos_angle_map,
-                                   (int(sx),int(sz)), 2,
+                                   (int(sx), int(sz)), 2,
                                    (1,1,1), -1)
-        stacked_image = np.stack([resized_id_map, resized_visited_map, pos_angle_map],
+        stacked_image = np.stack([pos_angle_map, resized_id_map, resized_visited_map],
                                  axis=2)
         return stacked_image
         
