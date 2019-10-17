@@ -30,7 +30,7 @@ from trainers.visited_map import VisitedMap
 
 
 ENABLE_VISITED_MAP_IMAGE = True
-ENABLE_BLIND_TRAINING = True
+ENABLE_BLIND_TRAINING = False
 
 class TrainerController(object):
     def __init__(self,
