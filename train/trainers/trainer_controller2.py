@@ -31,6 +31,7 @@ from trainers.visited_map import VisitedMap
 
 ENABLE_VISITED_MAP_IMAGE = True
 ENABLE_BLIND_TRAINING = False
+USE_FIXED_VISITED_MAP_COORDINATE = True
 
 class TrainerController(object):
     def __init__(self,
@@ -94,7 +95,8 @@ class TrainerController(object):
             self.extra_brain_infos = {}
             for brain_name in self.external_brain_names:
                 self.external_brains[brain_name] = add_extra_camera_parameter(
-                    self.external_brains[brain_name])
+                    self.external_brains[brain_name],
+                    USE_FIXED_VISITED_MAP_COORDINATE)
                 self.extra_brain_infos[brain_name] = ExtraBrainInfo()
 
     def _get_measure_vals(self):
@@ -347,14 +349,14 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
     return brain_info, extra_brain_info
 
 
-def add_extra_camera_parameter(brain_info_parameter):
+def add_extra_camera_parameter(brain_info_parameter,
+                               use_fixed_visited_map_coordinate=True):
     modified = copy.copy(brain_info_parameter)
     modified.number_visual_observations += 1
     extra_camera_parameters = {
         'height': 84,
         'width': 84,
-        #'blackAndWhite': True
-        'blackAndWhite': False
+        'blackAndWhite': not use_fixed_visited_map_coordinate
     }
     modified.camera_resolutions.append(extra_camera_parameters)
     return modified

@@ -167,7 +167,8 @@ class Display(object):
         right = left + height
         
         data = (visited_map * 127.0).astype(np.uint8)
-        #data = data.repeat(3, axis=2)
+        if data.shape[2] != 3:
+            data = data.repeat(3, axis=2)
         image = pygame.image.frombuffer(data, (84, 84), 'RGB')
         self.surface.blit(image, (left, top))
         self.draw_center_text("map", left+42, top+92)

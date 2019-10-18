@@ -13,7 +13,8 @@ class VisitedMap:
     RANGE_MAX =  40.0 * np.sqrt(2.0)
     RANGE_MIN = -40.0 * np.sqrt(2.0)
     
-    def __init__(self):
+    def __init__(self, use_fixed_coordinate=True):
+        self.use_fixed_coordinate = use_fixed_coordinate
         self.reset()
         
     def reset(self):
@@ -117,8 +118,10 @@ class VisitedMap:
         return [dx, dy, dz]
 
     def get_image(self):
-        return self.get_start_pos_angle_centric_map_image()
-        #return self.get_egocentric_map_image()
+        if self.use_fixed_coordinate:
+            return self.get_start_pos_angle_centric_map_image()
+        else:
+            return self.get_egocentric_map_image()
 
     def get_start_pos_angle_centric_map_image(self):
         id_map = self.get_local_map_image(id_only=True)
