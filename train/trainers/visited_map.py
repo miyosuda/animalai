@@ -18,7 +18,7 @@ class VisitedMap:
         self.reset()
         
     def reset(self):
-        self.last_local_angle = 0 # Radian
+        self.last_local_angle = 0 # Degree
         self.last_local_position = np.zeros((3), dtype=np.float)
 
         self.target_grid_probs = np.zeros([self.GRID_DIVISION,
@@ -43,7 +43,7 @@ class VisitedMap:
                                                                previous_vector_action,
                                                                vector_observation)
         
-        self.last_local_angle = local_angle # Radian
+        self.last_local_angle = local_angle # Degree
         self.last_local_position = local_position
         
         lidar_angles = [-20, -10, 0, 10, 20]

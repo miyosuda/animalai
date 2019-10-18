@@ -236,6 +236,42 @@ class LearningModel(object):
                                                                  reuse)
         return hidden_flat
 
+    def create_vgg_visual_observation_encoder(self,
+                                              image_input,
+                                              h_size,
+                                              activation,
+                                              num_layers,
+                                              scope,
+                                              reuse):
+        """
+        Builds a set of visual (CNN) encoders.
+        :param reuse: Whether to re-use the weights within the same scope.
+        :param scope: The scope of the graph within which to create the ops.
+        :param image_input: The placeholder for the image input to use.
+        :param h_size: Hidden layer size.
+        :param activation: What type of activation function to use for layers.
+        :param num_layers: number of hidden layers to create.
+        :return: List of hidden layer tensors.
+        """
+        print('***************** VGG *******************')
+        with tf.variable_scope(scope):
+            conv11 = tf.layers.conv2d(image_input, 32, kernel_size=[3, 3], strides=[1, 1],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_11")
+            conv12 = tf.layers.conv2d(conv11, 32, kernel_size=[3, 3], strides=[1, 1],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_12")
+            max1 = tf.layers.max_pooling2d(conv12, [2, 2], [2, 2])
+            conv21 = tf.layers.conv2d(max1, 64, kernel_size=[3, 3], strides=[1, 1],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_21")
+            conv22 = tf.layers.conv2d(conv21, 64, kernel_size=[3, 3], strides=[1, 1],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_22")
+            max2 = tf.layers.max_pooling2d(conv22, [2, 2], [2, 2])
+            hidden = c_layers.flatten(max2)
+
+        with tf.variable_scope(scope + '/' + 'flat_encoding'):
+            hidden_flat = self.create_vector_observation_encoder(hidden, h_size, activation,
+                                                                 num_layers, scope, reuse)
+        return hidden_flat
+
     @staticmethod
     def create_discrete_action_masking_layer(all_logits, action_masks, action_size):
         """
@@ -296,7 +332,8 @@ class LearningModel(object):
             hidden_state, hidden_visual = None, None
             if self.vis_obs_size > 0:
                 for j in range(brain.number_visual_observations):
-                    encoded_visual = self.create_visual_observation_encoder(
+                    #encoded_visual = self.create_visual_observation_encoder(
+                    encoded_visual = self.create_vgg_visual_observation_encoder(
                         self.visual_in[j],
                         h_size,
                         activation_fn,
