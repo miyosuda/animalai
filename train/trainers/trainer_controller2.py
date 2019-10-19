@@ -30,7 +30,7 @@ from trainers.visited_map import VisitedMap
 
 
 ENABLE_VISITED_MAP_IMAGE = True
-ENABLE_BLIND_TRAINING = False
+ENABLE_BLIND_TRAINING = True
 USE_FIXED_VISITED_MAP_COORDINATE = True
 USE_LIDAR_VECTOR_INFO = True
 
@@ -334,8 +334,9 @@ def expand_vector_observation(vector_observation,
         # Add lidar id probs
         new_vector_observation[8:8+VisitedMap.TARGET_ID_MAX*5] = lidar_id_probs.reshape([-1])
         # Add lidar distances
+        normalied_lidar_distances = lidar_distances / VisitedMap.RANGE_MAX
         new_vector_observation[8+VisitedMap.TARGET_ID_MAX*5:
-                               8+VisitedMap.TARGET_ID_MAX*5+5] = lidar_distances
+                               8+VisitedMap.TARGET_ID_MAX*5+5] = normalied_lidar_distances
 
     return new_vector_observation
 
