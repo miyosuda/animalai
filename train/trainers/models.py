@@ -257,16 +257,46 @@ class LearningModel(object):
         with tf.variable_scope(scope):
             conv11 = tf.layers.conv2d(image_input, 32, kernel_size=[3, 3], strides=[1, 1],
                                      activation=tf.nn.elu, reuse=reuse, name="conv_11")
+            #(-1, 82, 82, 32)
             conv12 = tf.layers.conv2d(conv11, 32, kernel_size=[3, 3], strides=[1, 1],
                                      activation=tf.nn.elu, reuse=reuse, name="conv_12")
+            #(-1, 80, 80, 64)
             max1 = tf.layers.max_pooling2d(conv12, [2, 2], [2, 2])
             conv21 = tf.layers.conv2d(max1, 64, kernel_size=[3, 3], strides=[1, 1],
                                      activation=tf.nn.elu, reuse=reuse, name="conv_21")
+            #(-1, 38, 38, 64)
             conv22 = tf.layers.conv2d(conv21, 64, kernel_size=[3, 3], strides=[1, 1],
                                      activation=tf.nn.elu, reuse=reuse, name="conv_22")
+            #(-1, 36, 36, 64)
             max2 = tf.layers.max_pooling2d(conv22, [2, 2], [2, 2])
+            # (-1, 18, 18, 64)
+            
             hidden = c_layers.flatten(max2)
 
+        with tf.variable_scope(scope + '/' + 'flat_encoding'):
+            hidden_flat = self.create_vector_observation_encoder(hidden, h_size, activation,
+                                                                 num_layers, scope, reuse)
+        return hidden_flat
+
+    def create_another_visual_observation_encoder(self,
+                                                  image_input,
+                                                  h_size,
+                                                  activation,
+                                                  num_layers,
+                                                  scope,
+                                                  reuse):
+        with tf.variable_scope(scope):
+            conv1 = tf.layers.conv2d(image_input, 32, kernel_size=[3, 3], strides=[2, 2],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_1")
+            # (-1, 41, 41, 32)
+            conv2 = tf.layers.conv2d(conv1, 64, kernel_size=[3, 3], strides=[2, 2],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_2")
+            # (-1, 20, 20, 64)
+            conv3 = tf.layers.conv2d(conv2, 64, kernel_size=[3, 3], strides=[2, 2],
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_3")
+            # (-1, 9, 9, 64)
+            hidden = c_layers.flatten(conv3)
+            
         with tf.variable_scope(scope + '/' + 'flat_encoding'):
             hidden_flat = self.create_vector_observation_encoder(hidden, h_size, activation,
                                                                  num_layers, scope, reuse)
@@ -332,14 +362,24 @@ class LearningModel(object):
             hidden_state, hidden_visual = None, None
             if self.vis_obs_size > 0:
                 for j in range(brain.number_visual_observations):
-                    #encoded_visual = self.create_visual_observation_encoder(
-                    encoded_visual = self.create_vgg_visual_observation_encoder(
-                        self.visual_in[j],
-                        h_size,
-                        activation_fn,
-                        num_layers,
-                        "main_graph_{}_encoder{}"
-                        .format(i, j), False)
+                    if j == 0:
+                        # For normal observation
+                        encoded_visual = self.create_visual_observation_encoder(
+                            self.visual_in[j],
+                            h_size,
+                            activation_fn,
+                            num_layers,
+                            "main_graph_{}_encoder{}"
+                            .format(i, j), False)
+                    else:
+                        # For visited map
+                        encoded_visual = self.create_another_visual_observation_encoder(
+                            self.visual_in[j],
+                            h_size,
+                            activation_fn,
+                            num_layers,
+                            "main_graph_{}_encoder{}"
+                            .format(i, j), False)
                     visual_encoders.append(encoded_visual)
                 hidden_visual = tf.concat(visual_encoders, axis=1)
             if brain.vector_observation_space_size > 0:

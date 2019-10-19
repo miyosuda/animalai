@@ -32,6 +32,8 @@ from trainers.visited_map import VisitedMap
 ENABLE_VISITED_MAP_IMAGE = True
 ENABLE_BLIND_TRAINING = False
 USE_FIXED_VISITED_MAP_COORDINATE = True
+USE_LIDAR_VECTOR_INFO = True
+
 
 class TrainerController(object):
     def __init__(self,
@@ -198,7 +200,8 @@ class TrainerController(object):
                 self.extra_brain_infos[brain_name] = ExtraBrainInfo() # delete old ExtraBrainInfo
                 out = expand_brain_info(new_info[brain_name],
                                         self.extra_brain_infos[brain_name],
-                                        self.lidar_estimators[brain_name])
+                                        self.lidar_estimators[brain_name],
+                                        USE_LIDAR_VECTOR_INFO)
                 new_info[brain_name], self.extra_brain_infos[brain_name] = out
                 self.lidar_estimators[brain_name].reset()
                 
@@ -283,7 +286,8 @@ class TrainerController(object):
                 lidar_estimator = self.lidar_estimators[brain_name]
                 out = expand_brain_info(new_info[brain_name],
                                         self.extra_brain_infos[brain_name],
-                                        lidar_estimator)
+                                        lidar_estimator,
+                                        USE_LIDAR_VECTOR_INFO)
                 new_info[brain_name], self.extra_brain_infos[brain_name] = out
                 
         for brain_name, trainer in self.trainers.items():
@@ -302,7 +306,41 @@ class TrainerController(object):
                 trainer.increment_step_and_update_last_reward()
         return new_info
 
-def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
+def expand_vector_observation(vector_observation,
+                              local_pos,
+                              local_angle,
+                              lidar_id_probs,
+                              lidar_distances,
+                              use_lidar_vector_info):
+    loal_angle_rad = local_angle / 360.0 * np.pi * 2.0
+    s = np.sin(loal_angle_rad)
+    c = np.cos(loal_angle_rad)
+    normalzed_local_pos = local_pos / VisitedMap.RANGE_MAX
+
+    if use_lidar_vector_info:
+        new_vector_observation = np.empty([3+5+5*VisitedMap.TARGET_ID_MAX+5], dtype=np.float32)
+    else:
+        new_vector_observation = np.empty([3+5], dtype=np.float32)
+
+    new_vector_observation[:3] = vector_observation[:]
+
+    # Add angle
+    new_vector_observation[3] = s
+    new_vector_observation[4] = c
+    # Add pos
+    new_vector_observation[5:8] = normalzed_local_pos
+
+    if use_lidar_vector_info:        
+        # Add lidar id probs
+        new_vector_observation[8:8+VisitedMap.TARGET_ID_MAX*5] = lidar_id_probs.reshape([-1])
+        # Add lidar distances
+        new_vector_observation[8+VisitedMap.TARGET_ID_MAX*5:
+                               8+VisitedMap.TARGET_ID_MAX*5+5] = lidar_distances
+
+    return new_vector_observation
+
+
+def expand_brain_info(brain_info, extra_brain_info, lidar_estimator, use_lidar_vector_info):
     n_arenas = len(brain_info.rewards)
     if n_arenas != len(extra_brain_info.visited_maps):
         extra_brain_info.visited_maps = [ VisitedMap() for _ in range(n_arenas) ]
@@ -316,6 +354,8 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
     extra_brain_info.debug_lidar_distances = all_lidar_distances
     
     visited_map_images = []
+
+    new_vector_observations = []
     
     for reward, local_done, vector_observation, previous_vector_action, \
         visited_map, lidar_id_probs, lidar_distances in zip(
@@ -335,7 +375,17 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator):
         visited_map_image = visited_map.get_image()
         visited_map_images.append(visited_map_image)
         
-    brain_info.visual_observations.append(np.array(visited_map_images, dtype=np.float))
+        # add extra vector observation
+        new_vector_observations.append(expand_vector_observation(
+            vector_observation,
+            visited_map.last_local_position,
+            visited_map.last_local_angle,
+            lidar_id_probs,
+            lidar_distances,
+            use_lidar_vector_info))
+
+    brain_info.visual_observations.append(np.array(visited_map_images, dtype=np.float32))
+    brain_info.vector_observations = np.array(new_vector_observations, dtype=np.float32)
 
     if ENABLE_BLIND_TRAINING:
         # Visual表示を消して学習をする場合
@@ -359,6 +409,16 @@ def add_extra_camera_parameter(brain_info_parameter,
         'blackAndWhite': not use_fixed_visited_map_coordinate
     }
     modified.camera_resolutions.append(extra_camera_parameters)
+
+    if USE_LIDAR_VECTOR_INFO:
+        # Add self pos angle info and lidar info
+        modified.vector_observation_space_size += (5 + VisitedMap.TARGET_ID_MAX*5+5)
+    else:
+        # Add self pos angle info 
+        modified.vector_observation_space_size += 5
+
+    print(modified) #..
+        
     return modified
 
 
