@@ -31,8 +31,8 @@ from trainers.visited_map import VisitedMap
 
 ENABLE_VISITED_MAP_IMAGE = True
 ENABLE_BLIND_TRAINING = True
-USE_FIXED_VISITED_MAP_COORDINATE = True
-USE_LIDAR_VECTOR_INFO = True
+USE_FIXED_VISITED_MAP_COORDINATE = False
+USE_LIDAR_VECTOR_INFO = False
 
 
 class TrainerController(object):
@@ -344,7 +344,7 @@ def expand_vector_observation(vector_observation,
 def expand_brain_info(brain_info, extra_brain_info, lidar_estimator, use_lidar_vector_info):
     n_arenas = len(brain_info.rewards)
     if n_arenas != len(extra_brain_info.visited_maps):
-        extra_brain_info.visited_maps = [ VisitedMap() for _ in range(n_arenas) ]
+        extra_brain_info.visited_maps = [ VisitedMap(USE_FIXED_VISITED_MAP_COORDINATE) for _ in range(n_arenas) ]
 
     # Estimate LIDAR target IDs and distances for all arenas at once.
     all_lidar_id_probs, all_lidar_distances = lidar_estimator.estimate(brain_info)
@@ -401,7 +401,7 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator, use_lidar_v
 
 
 def add_extra_camera_parameter(brain_info_parameter,
-                               use_fixed_visited_map_coordinate=True):
+                               use_fixed_visited_map_coordinate):
     modified = copy.copy(brain_info_parameter)
     modified.number_visual_observations += 1
     extra_camera_parameters = {
@@ -417,9 +417,6 @@ def add_extra_camera_parameter(brain_info_parameter,
     else:
         # Add self pos angle info 
         modified.vector_observation_space_size += 5
-
-    print(modified) #..
-        
     return modified
 
 
