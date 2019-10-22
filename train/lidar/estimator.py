@@ -73,13 +73,18 @@ class MultiLidarEstimator(object):
         last_velocities = brain_info.vector_observations
         local_dones     = brain_info.local_done
 
-        states          = np.array(states)
+        states          = np.array(states) # (1,n_arenas,84,84,3)
         last_actions    = np.array(last_actions,    np.int32)
         last_velocities = np.array(last_velocities, np.float32)
-        
+
         states          = states.reshape([self.batch_size,1,84,84,3])
         last_actions    = last_actions.reshape([self.batch_size,1,2])
         last_velocities = last_velocities.reshape([self.batch_size,1,3])
+
+        states_max = np.max(states, axis=(1,2,3,4)) # (n_arenas,)
+
+        # 各Arenaの画面が0でないかどうか
+        valids = [state_max > 0.0 for state_max in states_max]
         
         # local doneが立っている時は画像は新しいエピソードのものになっている.
         # last_action, last_velocityは、旧エピソードのものになっているので差し替える.
@@ -111,7 +116,7 @@ class MultiLidarEstimator(object):
         # (batch_size, 5, 13)
         
         self.lstm_state = lstm_state
-        return id_probs, distances
+        return id_probs, distances, valids
         
     def reset(self):
         c = np.zeros((self.batch_size, 256), dtype=np.float32)

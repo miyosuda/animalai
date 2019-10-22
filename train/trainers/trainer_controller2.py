@@ -330,7 +330,7 @@ def expand_vector_observation(vector_observation,
     # Add pos
     new_vector_observation[5:8] = normalzed_local_pos
 
-    if use_lidar_vector_info:        
+    if use_lidar_vector_info:
         # Add lidar id probs
         new_vector_observation[8:8+VisitedMap.TARGET_ID_MAX*5] = lidar_id_probs.reshape([-1])
         # Add lidar distances
@@ -347,8 +347,9 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator, use_lidar_v
         extra_brain_info.visited_maps = [ VisitedMap(USE_FIXED_VISITED_MAP_COORDINATE) for _ in range(n_arenas) ]
 
     # Estimate LIDAR target IDs and distances for all arenas at once.
-    all_lidar_id_probs, all_lidar_distances = lidar_estimator.estimate(brain_info)
-    # (n_arenas, 5, 13)   (n_arenas, 5)
+    out = lidar_estimator.estimate(brain_info)
+    all_lidar_id_probs, all_lidar_distances, all_lidar_valids = out
+    # (n_arenas, 5, 13)   (n_arenas, 5)   (n_arenas,)
 
     # Displayデバッグ表示用
     extra_brain_info.debug_lidar_id_probs = all_lidar_id_probs
@@ -359,20 +360,22 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator, use_lidar_v
     new_vector_observations = []
     
     for reward, local_done, vector_observation, previous_vector_action, \
-        visited_map, lidar_id_probs, lidar_distances in zip(
+        visited_map, lidar_id_probs, lidar_distances, lidar_valid in zip(
             brain_info.rewards,
             brain_info.local_done,
             brain_info.vector_observations,
             brain_info.previous_vector_actions,
             extra_brain_info.visited_maps,
             all_lidar_id_probs,
-            all_lidar_distances):
+            all_lidar_distances,
+            all_lidar_valids):
 
         visited_map.add_visited_info(local_done,
                                      previous_vector_action,
                                      vector_observation,
                                      lidar_id_probs,
-                                     lidar_distances)
+                                     lidar_distances,
+                                     lidar_valid)
         visited_map_image = visited_map.get_image()
         visited_map_images.append(visited_map_image)
         

@@ -34,7 +34,8 @@ class VisitedMap:
                          previous_vector_action,
                          vector_observation,
                          lidar_id_probs,
-                         lidar_distances):
+                         lidar_distances,
+                         lidar_valid):
         
         if local_done:
             self.reset()
@@ -45,15 +46,16 @@ class VisitedMap:
         
         self.last_local_angle = local_angle # Degree
         self.last_local_position = local_position
-        
-        lidar_angles = [-20, -10, 0, 10, 20]
-        for lidar_angle, lidar_id_prob, lidar_distance in zip(lidar_angles,
-                                                              lidar_id_probs,
-                                                              lidar_distances):
-            target_angle = lidar_angle + local_angle
-            d_target_pos = self.rotate_array([0.0, 0.0, lidar_distance], target_angle)
-            target_pos = local_position + np.array(d_target_pos, dtype=np.float32)
-            self.record_target(lidar_id_prob, target_pos)
+
+        if lidar_valid:
+            lidar_angles = [-20, -10, 0, 10, 20]
+            for lidar_angle, lidar_id_prob, lidar_distance in zip(lidar_angles,
+                                                                  lidar_id_probs,
+                                                                  lidar_distances):
+                target_angle = lidar_angle + local_angle
+                d_target_pos = self.rotate_array([0.0, 0.0, lidar_distance], target_angle)
+                target_pos = local_position + np.array(d_target_pos, dtype=np.float32)
+                self.record_target(lidar_id_prob, target_pos)
 
         self.record_self_pos(local_position)
 
