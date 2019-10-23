@@ -133,10 +133,12 @@ with graph.as_default():
             print("partial load: {}".format(tensor_name))
             restore_dict[tensor_name] = v
 
-    saver = tf.train.Saver(restore_dict)
+    parial_saver = tf.train.Saver(restore_dict)
+    merged_saver = tf.train.Saver()
+    
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
-        saver.restore(sess, checkpoint)
+        parial_saver.restore(sess, checkpoint)
 
         save_dir = "merged_model"
         if not os.path.exists(save_dir):
@@ -144,6 +146,6 @@ with graph.as_default():
 
         steps = 0
         last_checkpoint = save_dir + '/model-' + str(steps) + '.cptk'
-        saver.save(sess, last_checkpoint)
+        merged_saver.save(sess, last_checkpoint)
         #tf.train.write_graph(graph, save_dir,
         #                     'raw_graph_def.pb', as_text=False)
