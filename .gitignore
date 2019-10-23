@@ -13,6 +13,7 @@ train/data
 train/debug_data
 train/lidar_base_data*
 train/lidar_data*
+train/merged_model
 
 train/saved*
 train/run.sh
