@@ -20,6 +20,9 @@ from trainers.visited_map import VisitedMap
 
 from lidar.utils import convert_target_ids, get_target_names
 
+USE_FIXED_VISITED_MAP_COORDINATE = False
+USE_LIDAR_VECTOR_INFO = False
+
 
 BLUE  = (128, 128, 255)
 RED   = (255, 192, 192)
@@ -463,7 +466,9 @@ class Agent(object):
             vector_observation_space_size = 3
         )
 
-        self.brain = add_extra_camera_parameter(self.brain)
+        self.brain = add_extra_camera_parameter(
+            self.brain,
+            USE_FIXED_VISITED_MAP_COORDINATE)
         self.extra_brain_info = ExtraBrainInfo()
         
         self.trainer_params = yaml.load(open(trainer_config_path))['Learner']
@@ -515,9 +520,11 @@ class Agent(object):
         velocity, pos_angle, target_ids_distances = out
         # (3,)        
 
-        brain_info, self.extra_brain_info = expand_brain_info(brain_info,
-                                                              self.extra_brain_info,
-                                                              self.lidar_estimator)
+        brain_info, self.extra_brain_info = expand_brain_info(
+            brain_info,
+            self.extra_brain_info,
+            self.lidar_estimator,
+            USE_LIDAR_VECTOR_INFO)
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
@@ -556,9 +563,8 @@ def main():
     
     args = parser.parse_args()
     
-    #model_path          = './models/run_506/Learner'
-    #model_path          = './models/run_043/Learner'
-    model_path          = './models/run_102/Learner'
+    model_path = './models/run_1000/Learner'
+    
     #arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
     #arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
     #arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
