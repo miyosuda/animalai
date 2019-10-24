@@ -12,7 +12,7 @@ import sys
 
 
 # ML-agents parameters for training
-run_id           = 'run_103'
+run_id           = 'run_1000'
 sub_id           = 1
 seed             = 1
 run_seed         = 2
@@ -23,7 +23,8 @@ worker_id        = random.randint(1, 100)
 base_port        = 5005
 save_freq        = 20000
 curriculum_file  = None
-load_model       = False
+#load_model       = False
+load_model       = True
 train_model      = True
 lesson           = 0
 
@@ -33,8 +34,8 @@ model_path       = './models/{run_id}'.format(run_id=run_id)
 summaries_dir    = './summaries'
 
 n_arenas         = 16
-#arena_config_path= 'configs/3-Obstacles.yaml'
-arena_config_path= 'configs/1-Food-arena16-t250-r5.yaml'
+arena_config_path= 'configs/3-Obstacles.yaml'
+#arena_config_path= 'configs/1-Food-arena16-t250-r5.yaml'
 
 
 
