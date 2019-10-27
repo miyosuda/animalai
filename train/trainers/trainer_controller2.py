@@ -98,7 +98,8 @@ class TrainerController(object):
             for brain_name in self.external_brain_names:
                 self.external_brains[brain_name] = add_extra_camera_parameter(
                     self.external_brains[brain_name],
-                    USE_FIXED_VISITED_MAP_COORDINATE)
+                    USE_FIXED_VISITED_MAP_COORDINATE,
+                    USE_LIDAR_VECTOR_INFO)
                 self.extra_brain_infos[brain_name] = ExtraBrainInfo()
 
     def _get_measure_vals(self):
@@ -404,7 +405,8 @@ def expand_brain_info(brain_info, extra_brain_info, lidar_estimator, use_lidar_v
 
 
 def add_extra_camera_parameter(brain_info_parameter,
-                               use_fixed_visited_map_coordinate):
+                               use_fixed_visited_map_coordinate,
+                               use_lidar_vector_info):
     modified = copy.copy(brain_info_parameter)
     modified.number_visual_observations += 1
     extra_camera_parameters = {
@@ -414,7 +416,7 @@ def add_extra_camera_parameter(brain_info_parameter,
     }
     modified.camera_resolutions.append(extra_camera_parameters)
 
-    if USE_LIDAR_VECTOR_INFO:
+    if use_lidar_vector_info:
         # Add self pos angle info and lidar info
         modified.vector_observation_space_size += (5 + VisitedMap.TARGET_ID_MAX*5+5)
     else:
