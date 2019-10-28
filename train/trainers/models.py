@@ -302,6 +302,33 @@ class LearningModel(object):
                                                                  num_layers, scope, reuse)
         return hidden_flat
 
+    def create_another_light_visual_observation_encoder(self,
+                                                        image_input,
+                                                        h_size,
+                                                        activation,
+                                                        num_layers,
+                                                        scope,
+                                                        reuse):
+        with tf.variable_scope(scope):
+            conv1 = tf.layers.conv2d(image_input, 16, kernel_size=[4, 4], strides=[2, 2],
+                                     padding="same",
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_1")
+            # (-1, 42, 42, 16)
+            conv2 = tf.layers.conv2d(conv1, 32, kernel_size=[4, 4], strides=[2, 2],
+                                     padding="same",
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_2")
+            # (-1, 21, 21, 32)
+            conv3 = tf.layers.conv2d(conv2, 32, kernel_size=[4, 4], strides=[2, 2],
+                                     padding="same",
+                                     activation=tf.nn.elu, reuse=reuse, name="conv_3")
+            # (-1, 11, 11, 32)
+            hidden = c_layers.flatten(conv3)
+            
+        with tf.variable_scope(scope + '/' + 'flat_encoding'):
+            hidden_flat = self.create_vector_observation_encoder(hidden, h_size, activation,
+                                                                 num_layers, scope, reuse)
+        return hidden_flat
+
     @staticmethod
     def create_discrete_action_masking_layer(all_logits, action_masks, action_size):
         """
@@ -364,7 +391,8 @@ class LearningModel(object):
                 for j in range(brain.number_visual_observations):
                     if j == 0:
                         # For normal observation
-                        encoded_visual = self.create_visual_observation_encoder(
+                        #encoded_visual = self.create_visual_observation_encoder(
+                        encoded_visual = self.create_another_light_visual_observation_encoder(
                             self.visual_in[j],
                             h_size,
                             activation_fn,

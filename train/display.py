@@ -20,9 +20,9 @@ from trainers.visited_map import VisitedMap
 
 from lidar.utils import convert_target_ids, get_target_names
 
+ENABLE_VISITED_MAP_IMAGE = False
 USE_FIXED_VISITED_MAP_COORDINATE = False
-#USE_LIDAR_VECTOR_INFO = False
-USE_LIDAR_VECTOR_INFO = True
+USE_LIDAR_VECTOR_INFO = False
 
 
 BLUE  = (128, 128, 255)
@@ -467,11 +467,14 @@ class Agent(object):
             vector_observation_space_size = 3
         )
 
-        self.brain = add_extra_camera_parameter(
-            self.brain,
-            USE_FIXED_VISITED_MAP_COORDINATE,
-            USE_LIDAR_VECTOR_INFO)
-        self.extra_brain_info = ExtraBrainInfo()
+        if ENABLE_VISITED_MAP_IMAGE:
+            self.brain = add_extra_camera_parameter(
+                self.brain,
+                USE_FIXED_VISITED_MAP_COORDINATE,
+                USE_LIDAR_VECTOR_INFO)
+            self.extra_brain_info = ExtraBrainInfo()
+        else:
+            self.extra_brain_info = None
         
         self.trainer_params = yaml.load(open(trainer_config_path))['Learner']
         self.trainer_params['keep_checkpoints'] = 0
@@ -489,8 +492,9 @@ class Agent(object):
         )
 
     def reset(self, t=250):
-        self.extra_brain_info = ExtraBrainInfo()
-        self.lidar_estimator.reset()
+        if ENABLE_VISITED_MAP_IMAGE:
+            self.extra_brain_info = ExtraBrainInfo()
+            self.lidar_estimator.reset()
 
     def fix_brain_info(self, brain_info):
         velocity = brain_info.vector_observations[:,:3]
@@ -522,11 +526,12 @@ class Agent(object):
         velocity, pos_angle, target_ids_distances = out
         # (3,)        
 
-        brain_info, self.extra_brain_info = expand_brain_info(
-            brain_info,
-            self.extra_brain_info,
-            self.lidar_estimator,
-            USE_LIDAR_VECTOR_INFO)
+        if ENABLE_VISITED_MAP_IMAGE:
+            brain_info, self.extra_brain_info = expand_brain_info(
+                brain_info,
+                self.extra_brain_info,
+                self.lidar_estimator,
+                USE_LIDAR_VECTOR_INFO)
         
         out = self.policy.evaluate(brain_info=brain_info)
         action    = out['action']
