@@ -570,14 +570,13 @@ def main():
     
     args = parser.parse_args()
     
-    #model_path = './models/run_1002/Learner'
-    #model_path = './models/run_c1/Learner'
-    model_path = './models/run_c2/Learner'
+    model_path = './models/run_c6/Learner'
     
     #arena_config_path   = './configs/obstacle-curriculum/obstacle-w-t-wt-tt-r1.yaml'
     #arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
     #arena_config_path   = './configs/lidar/obstacle-w-t-wt-tt-cb-ulo-rm.yaml'
     #arena_config_path   = './configs/1-Food-arena16-t250-r5.yaml'
+    #arena_config_path   = './configs/2-Preferences.yaml'
     arena_config_path   = './configs/3-Obstacles.yaml'
     #arena_config_path   = './configs/7-InternalMemory.yaml'
     #arena_config_path   = './configs/1-Food-arena16-t2000-r1.yaml'

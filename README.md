@@ -1,71 +1,42 @@
-# 起動手順
+# AnimalAI Olympics agent for Inf-mnky team
 
-## 初回セットアップ
-
-レポジトリをclonseする.
-
-```
-$ git clone https://github.com/miyosuda/animalai.git
-```
-
-```
-$ cd animalai
-$ ./scripts/setup.sh
-$ ./scripts/build.sh
-```
-でDocker Imageを作成.
+[![preview](./docs/screen1.png)](https://www.youtube.com/watch?v=HrdV5LOhRAE)
 
 
-学習用にコードを変更する.
 
-# 2回目以降
+### Supervised allocentric position estimation
 
-```
-$ screen
-```
-
-でscreen起動
+Please see `train/allocentric/` directory.
 
 
-```
-$ sudo docker-compose up -d
-$ ./scripts/exec.sh
-```
 
-で起動.
+### Starting position relative agent position/angle calculation
+
+Please see `train/allocentric/integrator.py`
 
 
-```
-$ sudo docker-compose down
-```
 
-で終了
+### Supervised LIDAR training
+
+Please see `train/lidar/` directory.
 
 
-## Tensorboard の起動
 
-ローカルでもう一つターミナルを開いて ssh でインスタンスにログイン.
+### Map creation with LIDAR information
 
-```
-$ ssh ubuntu@IP
-```
+Please see `train/trainers/visited_map.py`
 
-```
-$ screen
-$ cd animalai
-$ ./scripts/exec.sh
-```
 
-Tensorboard 起動.
 
-```
-$ cd train
-$ tensorboard --logdir=summaries
-```
+### Agent visualizer
 
-結果を確認する時は別コンソールから
+Please see `train/dislay.py`
 
-```
-$ ssh ubuntu@IP -L 6006:localhost:6006
-```
+
+
+### Customized Unity environment
+
+Please see `unity/` directory
+
+
 
