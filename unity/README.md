@@ -1,5 +1,10 @@
 # AnimalAI Custom Unity Environment
 
+## Unity version
+
+We used unity version `2018.3.13f1`.
+
+
 
 ## Where we changed
 
