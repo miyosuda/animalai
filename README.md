@@ -6,37 +6,34 @@
 
 ### Supervised allocentric position estimation
 
-Please see `train/allocentric/` directory.
+Please see [`train/allocentric/`]train/allocentric) directory.
 
 
 
 ### Starting position relative agent position/angle calculation
 
-Please see `train/allocentric/integrator.py`
+Please see [`train/allocentric/integrator.py`](train/allocentric/integrator.py)
 
 
 
 ### Supervised LIDAR training
 
-Please see `train/lidar/` directory.
+Please see [`train/lidar/`](train/lidar/) directory.
 
 
 
 ### Map creation with LIDAR information
 
-Please see `train/trainers/visited_map.py`
+Please see [`train/trainers/visited_map.py`](train/trainers/visited_map.py)
 
 
 
 ### Agent visualizer
 
-Please see `train/dislay.py`
+Please see [`train/dislay.py`](train/dislay.py)
 
 
 
 ### Customized Unity environment
 
-Please see `unity/` directory
-
-
-
+Please see [`unity/`](unity) directory
