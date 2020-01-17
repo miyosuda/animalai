@@ -1,14 +1,16 @@
-# AnimalAI カスタム Unity環境
+# AnimalAI Custom Unity Environment
 
-## 変更点
 
-`BrainInfo`の`vector_observations`はデフォルトだとlocal velocityの情報(vx, vy, vz)だけが入っているが、これにAgentの位置情報と角度情報を付加する.
+## Where we changed
+
+The default `vector_observations` in the `BrainInfo` has only local velocity `(vx, vy, vz)`, but we added agent's absolute position and angle information.
+
 
 ### TrainingAgent.cs
 
 `Assets/AnimalAIOlympics/TrainEnv/Scripts/TrainingAgent.cs`
 
-Globalの位置(x,y,z)と角度(0〜360)を追加で付加.
+Added global postion (x,y,z), angle (0~360 degree), and LIDAR distance and target id info.
 
 
 ```
@@ -17,50 +19,40 @@ Globalの位置(x,y,z)と角度(0〜360)を追加で付加.
         Vector3 localVel = transform.InverseTransformDirection(_rigidBody.velocity);
         AddVectorObs(localVel);
 
-        // CHANGED: Custumly added global positaion and rotation
+        // CHANGED: Custumly added global positaion, rotation and LIDAR info
         Vector3 position = _rigidBody.position;
         AddVectorObs(position);
 
         float rotation = transform.eulerAngles.y;
         AddVectorObs(rotation);
+        
+        // Add Lidar scan result
+        _lidar.Process(transform);
+        AddVectorObs(_lidar.Result);        
     }
 ```
 
-### BrainのParameter
+### LIDAR processing
 
-`TrainEnv/Brains/Learner.asset`と`TrainEnv/Brains/Player.asset`
-
-の`VectorObservations/SpaceSize`を`3`から`7`に変更
-
-
-### 起動の高速化
-
-`BuildSetting` -> `PlayerSettings` -> `SplashImage` -> `Splash Screen` -> `Show Splash Screen`のチェックを外すことで起動を高速化した.
-(ここはUnity Proのライセンスでのみ設定可能)
+Please see code around [here](https://github.com/miyosuda/animalai/blob/c191e2a91aef34acffd2dc3ea6612ad04017ee3f/unity/CustomAnimalAI-Environment/Assets/AnimalAIOlympics/TrainEnv/Scripts/TrainingAgent.cs#L179-L302
+)
 
 
-### RampとCylinderのfix
+### Brain Parameter
 
-#### CylinderTunnelの解決方法
-Bldnerをinstallした後、 `Assets/AnimalAIOlympics/SharedAssets/Prefabs/Cylinder.blend` のimport設定で、fixを押してimportを修正
+We need to change the parameter of the brain object after adding vector observation info.
 
-`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/CylinderTunnel.prefab` 
-`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/CylinderTunnelTransparent.prefab` 
+Open `Assets/AnimalAIOlympics/TrainEnv/Brains/Learner.asset` and `Assets/AnimalAIOlympics/TrainEnv/Brains/Player.asset` 's property setting and change `VectorObservations/SpaceSize` parameter from `3` to `17`.
 
-の`Mesh`と`MeshCollider`に、`Cylinder`メッシュ (正確にはCylinder.blendの中のCylinderポリゴンメッシュを指定する.
-
-### Rampの解決方法
-
-`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/Ramp.prefab` 
-のTopの`Ramp` GameObjectの下に、`Assets/AnimalAIOlympics/TrainEnv/Prefab/Immovable/Ramp.fbx`を追加する.
-
-追加したGameObjectに、`MeshCollider` Componentを追加し`Convex`プロパティをOnにする. Meshに `Cube`(Ramp.fbxの中のポリゴン) が入っているのを確認する.
-
-追加時にRotaionとScaleの値が自動で設定されてしまうので、Rotationを(0,0,0), Scaleを(1,1,1)にしておく.
-
-リンクの切れている`RampFBX (Missing Prefab)`のGameObjectは念のためdisableにしておく.
+17 = 3(local velocity) + 3(position) + 1(rotation) + 10(lidar distance and taraget id)
 
 
 
 
+
+### Fast boot (Requires Unity Pro license)
+
+The environment app boot time can be reduced by removing splash logo screen. You can do it by turning off the option at
+
+`BuildSetting` -> `PlayerSettings` -> `SplashImage` -> `Splash Screen` -> `Show Splash Screen` 
 
