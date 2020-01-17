@@ -30,7 +30,7 @@ Please see [`train/trainers/visited_map.py`](train/trainers/visited_map.py)
 
 ### Agent visualizer
 
-Please see [`train/dislay.py`](train/dislay.py)
+Please see [`train/display.py`](train/display.py)
 
 
 
