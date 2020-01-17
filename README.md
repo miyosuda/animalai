@@ -6,7 +6,7 @@
 
 ### Supervised allocentric position estimation
 
-Please see [`train/allocentric/`]train/allocentric) directory.
+Please see [`train/allocentric/`](train/allocentric) directory.
 
 
 
